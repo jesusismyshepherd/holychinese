@@ -223,11 +223,7 @@
     .t0 { color: var(--t0); }
 
     /* ─── Detail Panel Overlay ───────────────────────────── */
-    #detail-backdrop {
-      display: none; position: fixed; inset: 0; top: var(--header-h);
-      background: rgba(0,0,0,0.28); z-index: 90;
-    }
-    #detail-backdrop.open { display: block; }
+    #detail-backdrop { display: none; }
 
     #detail-panel {
       position: fixed; top: var(--header-h); right: 0; bottom: 0;
@@ -547,7 +543,7 @@
   </section>
 
   <!-- ── Flashcard View ─────────────────────────────────── -->
-  <section class="view" id="flashcard-view">
+  <section class="view" id="flashcards-view">
     <h2>Flashcards 抽认卡</h2>
     <div id="fc-stats">
       <div class="fc-stat"><div class="sn" id="fc-total">0</div><div class="sl">Total Cards</div></div>
@@ -603,7 +599,7 @@
 </main>
 
 <!-- ══════════ DETAIL PANEL ══════════ -->
-<div id="detail-backdrop" onclick="closePanel()"></div>
+<div id="detail-backdrop"></div>
 <aside id="detail-panel">
   <button id="detail-close" onclick="closePanel()">✕</button>
 
@@ -1388,12 +1384,10 @@ function openPanel(ch) {
   btn.classList.toggle('in-deck', inDeck);
 
   document.getElementById('detail-panel').classList.add('open');
-  document.getElementById('detail-backdrop').classList.add('open');
 }
 
 function closePanel() {
   document.getElementById('detail-panel').classList.remove('open');
-  document.getElementById('detail-backdrop').classList.remove('open');
   document.querySelectorAll('.char-unit').forEach(el => el.classList.remove('lit'));
   currentChar = null;
 }
