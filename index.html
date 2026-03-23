@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sacred Chinese — Learn Through Prayer</title>
+  <style>
+    /* ─── Variables ───────────────────────────────────────── */
+    :root {
+      --bg:        #f5f0e8;
+      --surface:   #ffffff;
+      --primary:   #1e3a5f;
+      --accent:    #b8862a;
+      --accent2:   #8b1a1a;
+      --text:      #1a1a2e;
+      --muted:     #6b6a6a;
+      --border:    #ddd6c8;
+      --speaking:  #fff8e1;
+      --highlight: rgba(184,134,42,0.18);
+
+      --t1: #1d6bb5;  /* tone 1 – flat   – blue   */
+      --t2: #1a7a3d;  /* tone 2 – rising – green  */
+      --t3: #7c3aab;  /* tone 3 – dip    – purple */
+      --t4: #c0392b;  /* tone 4 – fall   – red    */
+      --t0: #888;     /* neutral tone            */
+
+      --panel-w: 370px;
+      --header-h: 58px;
+      --radius: 12px;
+    }
+
+    /* ─── Reset ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ─── Header ─────────────────────────────────────────── */
+    #app-header {
+      position: sticky; top: 0; z-index: 50;
+      height: var(--header-h);
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    #app-header h1 {
+      font-size: 1.25rem; font-weight: 700; color: #fff;
+      letter-spacing: 0.04em;
+    }
+    #app-header h1 span { color: var(--accent); }
+    #app-header h1 small {
+      font-size: 0.7rem; font-weight: 400; opacity: 0.7;
+      display: block; letter-spacing: 0.06em;
+    }
+    nav { display: flex; gap: 0.5rem; }
+    nav button {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      color: #fff;
+      padding: 0.35rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      transition: all 0.18s;
+    }
+    nav button.active, nav button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ─── Views ──────────────────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    #app-main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ─── Prayer Header ──────────────────────────────────── */
+    #prayer-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    #prayer-header .zh-title {
+      font-size: 2.4rem;
+      color: var(--primary);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    #prayer-header .py-title {
+      font-size: 0.95rem; color: var(--muted); margin-top: 0.2rem;
+    }
+    #prayer-header .en-title {
+      font-size: 1.1rem; color: var(--accent2); font-style: italic; margin-top: 0.15rem;
+    }
+    .divider {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin: 0.75rem auto;
+    }
+
+    /* ─── Tone Guide ─────────────────────────────────────── */
+    #tone-guide {
+      display: flex; gap: 0.6rem; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 1.5rem;
+      font-size: 0.75rem;
+    }
+    .tone-badge {
+      padding: 0.2rem 0.6rem; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .tone-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ─── Audio Controls ─────────────────────────────────── */
+    #audio-controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    #btn-play-pause {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      border: none; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.18s;
+    }
+    #btn-play-pause:hover { background: var(--accent); transform: scale(1.07); }
+    #btn-play-pause.playing { background: var(--accent2); }
+    .speed-group {
+      display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    }
+    .speed-group label { font-size: 0.8rem; color: var(--muted); }
+    .speed-btn {
+      padding: 0.25rem 0.65rem;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: #fff; font-size: 0.78rem;
+      transition: all 0.15s;
+    }
+    .speed-btn:hover, .speed-btn.selected {
+      background: var(--primary); color: #fff; border-color: var(--primary);
+    }
+    #voice-status {
+      margin-left: auto; font-size: 0.75rem; color: var(--muted);
+      white-space: nowrap;
+    }
+    #no-voice-note {
+      display: none;
+      background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 8px; padding: 0.6rem 1rem;
+      font-size: 0.82rem; color: #7a5800; margin-bottom: 1rem;
+    }
+
+    /* ─── Prayer Text ────────────────────────────────────── */
+    #prayer-text {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem 1.75rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+
+    .prayer-segment {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+      border-radius: 8px;
+      padding: 0.5rem;
+      margin: 0 -0.5rem 1.25rem;
+    }
+    .prayer-segment:last-child { margin-bottom: 0; border-bottom: none; }
+    .prayer-segment.speaking { background: var(--speaking); }
+
+    .char-row {
+      display: flex; flex-wrap: wrap; align-items: flex-end;
+      gap: 2px; margin-bottom: 0.35rem;
+    }
+
+    .char-unit {
+      display: inline-flex; flex-direction: column; align-items: center;
+      padding: 3px 4px; border-radius: 6px;
+      cursor: pointer; user-select: none;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .char-unit:hover { background: var(--highlight); transform: translateY(-1px); }
+    .char-unit.lit { background: var(--highlight); }
+
+    .char-unit .py {
+      font-size: 0.68rem; line-height: 1.3;
+      min-height: 1em; white-space: nowrap;
+    }
+    .char-unit .hz {
+      font-size: 1.85rem; line-height: 1.15;
+      color: var(--primary); font-weight: 500;
+    }
+    .char-unit:hover .hz { color: var(--accent); }
+
+    .punct .hz { font-size: 1.85rem; color: var(--text); cursor: default; }
+    .punct:hover { background: transparent; transform: none; }
+
+    .seg-english {
+      font-size: 0.88rem; color: var(--muted);
+      font-style: italic; margin-top: 0.1rem; padding-left: 0.25rem;
+    }
+
+    /* Tone classes */
+    .t1 { color: var(--t1); }
+    .t2 { color: var(--t2); }
+    .t3 { color: var(--t3); }
+    .t4 { color: var(--t4); }
+    .t0 { color: var(--t0); }
+
+    /* ─── Detail Panel Overlay ───────────────────────────── */
+    #detail-backdrop {
+      display: none; position: fixed; inset: 0; top: var(--header-h);
+      background: rgba(0,0,0,0.28); z-index: 90;
+    }
+    #detail-backdrop.open { display: block; }
+
+    #detail-panel {
+      position: fixed; top: var(--header-h); right: 0; bottom: 0;
+      width: var(--panel-w); background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+      transform: translateX(100%);
+      transition: transform 0.28s ease;
+      overflow-y: auto; z-index: 95;
+      padding: 1.5rem;
+    }
+    #detail-panel.open { transform: translateX(0); }
+
+    #detail-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; font-size: 1.2rem;
+      color: var(--muted); width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; transition: all 0.15s;
+    }
+    #detail-close:hover { background: var(--bg); color: var(--text); }
+
+    /* Panel — character hero */
+    #detail-hero {
+      text-align: center; padding: 1.5rem 0 1.25rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;
+    }
+    #detail-char-big {
+      font-size: 5.5rem; line-height: 1; color: var(--primary); font-weight: 700;
+    }
+    #detail-pinyin-big {
+      font-size: 1.4rem; font-weight: 600; margin: 0.3rem 0 0.15rem;
+    }
+    #detail-meaning { font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+    #detail-meta {
+      font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem;
+    }
+    #btn-pronounce {
+      margin-top: 0.75rem;
+      background: var(--primary); color: #fff;
+      border: none; padding: 0.4rem 1.1rem; border-radius: 20px;
+      font-size: 0.82rem; transition: all 0.15s;
+    }
+    #btn-pronounce:hover { background: var(--accent); }
+
+    /* Panel — sections */
+    .panel-section { margin-bottom: 1.5rem; }
+    .panel-section h3 {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.7rem;
+    }
+
+    /* Breakdown */
+    .breakdown-grid {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+    }
+    .breakdown-chip {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.3rem 0.7rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1px;
+    }
+    .breakdown-chip .bc-zh { font-size: 1.3rem; color: var(--primary); }
+    .breakdown-chip .bc-label { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+    .radical-badge {
+      background: var(--primary); color: #fff;
+      border-radius: 8px; padding: 0.3rem 0.7rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1px;
+    }
+    .radical-badge .bc-zh { font-size: 1.3rem; }
+    .radical-badge .bc-label { font-size: 0.65rem; opacity: 0.8; white-space: nowrap; }
+
+    .etymology-note {
+      font-size: 0.8rem; color: var(--muted); line-height: 1.5;
+      margin-top: 0.6rem; font-style: italic;
+    }
+
+    /* Phrases */
+    .phrase-row {
+      display: flex; align-items: baseline; gap: 0.5rem;
+      padding: 0.55rem 0; border-bottom: 1px solid var(--bg);
+      flex-wrap: wrap;
+    }
+    .phrase-row:last-child { border-bottom: none; }
+    .phrase-zh { font-size: 1.05rem; color: var(--primary); font-weight: 500; min-width: 55px; }
+    .phrase-py { font-size: 0.72rem; color: var(--muted); }
+    .phrase-en { font-size: 0.82rem; color: var(--text); flex: 1; min-width: 100px; }
+
+    /* Add-to-flashcard button */
+    #btn-add-fc {
+      width: 100%; padding: 0.75rem;
+      background: linear-gradient(135deg, var(--accent), #8a6018);
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 0.92rem; font-weight: 500; transition: all 0.18s;
+      margin-top: 0.25rem;
+    }
+    #btn-add-fc:hover { opacity: 0.88; transform: translateY(-1px); }
+    #btn-add-fc.in-deck {
+      background: linear-gradient(135deg, #2d7d46, #1a5c2e);
+    }
+
+    /* ─── Flashcard View ─────────────────────────────────── */
+    #flashcard-view { max-width: 560px; margin: 0 auto; }
+    #flashcard-view h2 {
+      color: var(--primary); margin-bottom: 1.5rem; font-size: 1.35rem;
+    }
+    #fc-stats {
+      display: flex; gap: 0.75rem; margin-bottom: 1.75rem;
+    }
+    .fc-stat {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; text-align: center; padding: 0.75rem;
+    }
+    .fc-stat .sn { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .fc-stat .sl { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .fc-stat.correct .sn { color: #2d7d46; }
+    .fc-stat.wrong   .sn { color: #c0392b; }
+
+    #fc-progress { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem; }
+
+    /* Card flip */
+    #fc-area {
+      perspective: 1000px; height: 260px;
+      margin-bottom: 1.25rem; cursor: pointer;
+    }
+    #fc-card {
+      width: 100%; height: 100%; position: relative;
+      transform-style: preserve-3d; transition: transform 0.45s;
+    }
+    #fc-card.flipped { transform: rotateY(180deg); }
+
+    .fc-face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    }
+    #fc-back { transform: rotateY(180deg); }
+
+    #fc-char-display { font-size: 5.5rem; color: var(--primary); line-height: 1; }
+    #fc-tap-hint { font-size: 0.75rem; color: var(--muted); font-style: italic; margin-top: 0.5rem; }
+    #fc-back-pinyin { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.35rem; }
+    #fc-back-meaning { font-size: 0.95rem; color: var(--text); text-align: center; line-height: 1.5; }
+    #fc-back-hear {
+      margin-top: 0.9rem;
+      background: var(--primary); color: #fff;
+      border: none; padding: 0.3rem 0.9rem; border-radius: 18px; font-size: 0.8rem;
+    }
+    #fc-back-hear:hover { background: var(--accent); }
+
+    #fc-actions {
+      display: none; /* shown when flipped */
+      justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+    .fc-rate {
+      padding: 0.55rem 1.3rem; border-radius: 24px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      font-size: 0.88rem; font-weight: 500; transition: all 0.15s;
+    }
+    .fc-rate:hover { transform: translateY(-2px); }
+    .fc-rate.again { border-color: #c0392b; color: #c0392b; }
+    .fc-rate.again:hover { background: #c0392b; color: #fff; }
+    .fc-rate.got-it { border-color: #2d7d46; color: #2d7d46; }
+    .fc-rate.got-it:hover { background: #2d7d46; color: #fff; }
+
+    #fc-footer { text-align: center; }
+    #btn-fc-shuffle {
+      background: none; border: 1.5px solid var(--border);
+      padding: 0.4rem 1.1rem; border-radius: 20px;
+      font-size: 0.82rem; color: var(--muted); transition: all 0.15s;
+    }
+    #btn-fc-shuffle:hover { border-color: var(--primary); color: var(--primary); }
+
+    #fc-empty {
+      text-align: center; padding: 4rem 2rem;
+    }
+    #fc-empty .em-icon { font-size: 3rem; margin-bottom: 1rem; }
+    #fc-empty h3 { color: var(--primary); margin-bottom: 0.5rem; }
+    #fc-empty p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    #fc-complete {
+      display: none; text-align: center; padding: 3rem 2rem;
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    #fc-complete .em-icon { font-size: 3rem; margin-bottom: 1rem; }
+    #fc-complete h3 { color: var(--primary); font-size: 1.3rem; margin-bottom: 0.5rem; }
+    #btn-fc-restart {
+      margin-top: 1.25rem;
+      background: var(--primary); color: #fff; border: none;
+      padding: 0.75rem 2rem; border-radius: 24px; font-size: 0.95rem;
+    }
+    #btn-fc-restart:hover { background: var(--accent); }
+
+    /* ─── Toast ──────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 1.75rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--primary); color: #fff;
+      padding: 0.65rem 1.4rem; border-radius: 24px; font-size: 0.88rem;
+      transition: transform 0.28s; z-index: 200; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── Responsive ─────────────────────────────────────── */
+    @media (max-width: 640px) {
+      #app-header h1 { font-size: 1rem; }
+      #app-main { padding: 1.25rem 1rem; }
+      .char-unit .hz { font-size: 1.5rem; }
+      #detail-panel { width: 100%; }
+      #prayer-header .zh-title { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header id="app-header">
+  <h1>Sacred <span>Chinese</span> <small>神圣汉语 — Learn Through Prayer</small></h1>
+  <nav>
+    <button id="nav-prayer"     class="active" onclick="showView('prayer')">Prayers 祈祷</button>
+    <button id="nav-flashcards"               onclick="showView('flashcards')">Flashcards 抽认卡</button>
+  </nav>
+</header>
+
+<!-- ══════════ MAIN ══════════ -->
+<main id="app-main">
+
+  <!-- ── Prayer View ────────────────────────────────────── -->
+  <section class="view active" id="prayer-view">
+
+    <div id="prayer-header">
+      <div class="zh-title">万福玛利亚</div>
+      <div class="py-title">Wàn Fú Mǎ Lì Yà</div>
+      <div class="en-title">Hail Mary</div>
+      <div class="divider"></div>
+    </div>
+
+    <!-- Tone guide -->
+    <div id="tone-guide">
+      <span class="tone-badge"><span class="dot" style="background:var(--t1)"></span><span>1st tone — flat</span></span>
+      <span class="tone-badge"><span class="dot" style="background:var(--t2)"></span><span>2nd tone — rising</span></span>
+      <span class="tone-badge"><span class="dot" style="background:var(--t3)"></span><span>3rd tone — dip</span></span>
+      <span class="tone-badge"><span class="dot" style="background:var(--t4)"></span><span>4th tone — falling</span></span>
+      <span class="tone-badge"><span class="dot" style="background:var(--t0)"></span><span>neutral</span></span>
+    </div>
+
+    <div id="no-voice-note">
+      ⚠️ No Mandarin voice was found on this device. Try Chrome or Edge on Windows / macOS for audio playback.
+    </div>
+
+    <!-- Audio controls -->
+    <div id="audio-controls">
+      <button id="btn-play-pause" onclick="togglePlay()" title="Play / Pause">▶</button>
+      <div class="speed-group">
+        <label>Speed:</label>
+        <button class="speed-btn" data-speed="0.5"  onclick="setSpeed(0.5)">0.5×</button>
+        <button class="speed-btn selected" data-speed="0.75" onclick="setSpeed(0.75)">0.75×</button>
+        <button class="speed-btn" data-speed="1"    onclick="setSpeed(1)">1×</button>
+        <button class="speed-btn" data-speed="1.25" onclick="setSpeed(1.25)">1.25×</button>
+      </div>
+      <div id="voice-status">Loading voice…</div>
+    </div>
+
+    <!-- Prayer text — built by JS -->
+    <div id="prayer-text"></div>
+
+  </section>
+
+  <!-- ── Flashcard View ─────────────────────────────────── -->
+  <section class="view" id="flashcard-view">
+    <h2>Flashcards 抽认卡</h2>
+    <div id="fc-stats">
+      <div class="fc-stat"><div class="sn" id="fc-total">0</div><div class="sl">Total Cards</div></div>
+      <div class="fc-stat correct"><div class="sn" id="fc-correct">0</div><div class="sl">Correct</div></div>
+      <div class="fc-stat wrong">  <div class="sn" id="fc-wrong">0</div>  <div class="sl">Review Again</div></div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="fc-empty">
+      <div class="em-icon">📚</div>
+      <h3>No flashcards yet</h3>
+      <p>Tap any Chinese character in the prayer, then press<br><strong>+ Add to Flashcards</strong> to build your study deck.</p>
+    </div>
+
+    <!-- Active study area -->
+    <div id="fc-study" style="display:none">
+      <div id="fc-progress"></div>
+
+      <div id="fc-area" onclick="flipCard()">
+        <div id="fc-card">
+          <div class="fc-face" id="fc-front">
+            <div id="fc-char-display"></div>
+            <div id="fc-tap-hint">Tap to reveal</div>
+          </div>
+          <div class="fc-face" id="fc-back">
+            <div id="fc-back-pinyin"></div>
+            <div id="fc-back-meaning"></div>
+            <button id="fc-back-hear" onclick="event.stopPropagation(); speakChar(fcSession[fcIndex].char)">🔊 Hear it</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="fc-actions">
+        <button class="fc-rate again"  onclick="rateCard(false)">✗ Review Again</button>
+        <button class="fc-rate got-it" onclick="rateCard(true)">✓ Got It!</button>
+      </div>
+
+      <div id="fc-footer">
+        <button id="btn-fc-shuffle" onclick="shuffleAndStart()">↺ Shuffle &amp; Restart</button>
+      </div>
+    </div>
+
+    <!-- Complete state -->
+    <div id="fc-complete">
+      <div class="em-icon">🎉</div>
+      <h3>Session Complete!</h3>
+      <p id="fc-complete-msg"></p>
+      <button id="btn-fc-restart" onclick="shuffleAndStart()">Practice Again</button>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ══════════ DETAIL PANEL ══════════ -->
+<div id="detail-backdrop" onclick="closePanel()"></div>
+<aside id="detail-panel">
+  <button id="detail-close" onclick="closePanel()">✕</button>
+
+  <div id="detail-hero">
+    <div id="detail-char-big"></div>
+    <div id="detail-pinyin-big"></div>
+    <div id="detail-meaning"></div>
+    <div id="detail-meta"></div>
+    <button id="btn-pronounce" onclick="speakChar(currentChar)">🔊 Hear pronunciation</button>
+  </div>
+
+  <div class="panel-section" id="section-breakdown">
+    <h3>Radical &amp; Components 部首与组成</h3>
+    <div class="breakdown-grid" id="breakdown-grid"></div>
+    <p class="etymology-note" id="etymology-note"></p>
+  </div>
+
+  <div class="panel-section" id="section-phrases">
+    <h3>Common Phrases 常用词</h3>
+    <div id="phrases-list"></div>
+  </div>
+
+  <button id="btn-add-fc" onclick="toggleFlashcard()">+ Add to Flashcards</button>
+</aside>
+
+<!-- ══════════ TOAST ══════════ -->
+<div id="toast"></div>
+
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════
+   DATA — Prayer
+   ════════════════════════════════════════════════════════════ */
+
+/* Each token: { zh, py, tone }  tone: 1-4 or 0 for neutral, null for punct */
+const PRAYER_SEGMENTS = [
+  {
+    tokens: [
+      {zh:'万',py:'wàn',tone:4},{zh:'福',py:'fú',tone:2},{zh:'玛',py:'mǎ',tone:3},
+      {zh:'利',py:'lì', tone:4},{zh:'亚',py:'yà',tone:4},{zh:'，',py:null}
+    ],
+    translations: { en: 'Hail Mary,' }
+  },
+  {
+    tokens: [
+      {zh:'你',py:'nǐ',   tone:3},{zh:'充',py:'chōng',tone:1},{zh:'满',py:'mǎn',tone:3},
+      {zh:'圣',py:'shèng',tone:4},{zh:'宠',py:'chǒng',tone:3},{zh:'，',py:null}
+    ],
+    translations: { en: 'full of grace,' }
+  },
+  {
+    tokens: [
+      {zh:'主',py:'zhǔ',tone:3},{zh:'与',py:'yǔ', tone:3},{zh:'你',py:'nǐ',  tone:3},
+      {zh:'同',py:'tóng',tone:2},{zh:'在',py:'zài',tone:4},{zh:'；',py:null}
+    ],
+    translations: { en: 'the Lord is with thee;' }
+  },
+  {
+    tokens: [
+      {zh:'你',py:'nǐ',   tone:3},{zh:'在',py:'zài', tone:4},{zh:'女',py:'nǚ',  tone:3},
+      {zh:'中',py:'zhōng',tone:1},{zh:'受',py:'shòu',tone:4},{zh:'赞',py:'zàn',tone:4},
+      {zh:'颂',py:'sòng', tone:4},{zh:'，',py:null}
+    ],
+    translations: { en: 'blessed art thou amongst women,' }
+  },
+  {
+    tokens: [
+      {zh:'你',py:'nǐ',  tone:3},{zh:'的',py:'de',  tone:0},{zh:'亲',py:'qīn', tone:1},
+      {zh:'子',py:'zǐ',  tone:3},{zh:'耶',py:'yē',  tone:1},{zh:'稣',py:'sū',  tone:1},
+      {zh:'同',py:'tóng',tone:2},{zh:'受',py:'shòu',tone:4},{zh:'赞',py:'zàn',tone:4},
+      {zh:'颂',py:'sòng',tone:4},{zh:'。',py:null}
+    ],
+    translations: { en: 'and blessed is the fruit of thy womb, Jesus.' }
+  },
+  {
+    tokens: [
+      {zh:'天',py:'tiān',tone:1},{zh:'主',py:'zhǔ',tone:3},{zh:'圣',py:'shèng',tone:4},
+      {zh:'母',py:'mǔ',  tone:3},{zh:'玛',py:'mǎ', tone:3},{zh:'利',py:'lì',   tone:4},
+      {zh:'亚',py:'yà',  tone:4},{zh:'，',py:null}
+    ],
+    translations: { en: 'Holy Mary, Mother of God,' }
+  },
+  {
+    tokens: [
+      {zh:'求',py:'qiú', tone:2},{zh:'你',py:'nǐ',  tone:3},{zh:'现',py:'xiàn',tone:4},
+      {zh:'在',py:'zài', tone:4},{zh:'和',py:'hé',  tone:2},{zh:'我',py:'wǒ',  tone:3},
+      {zh:'们',py:'men', tone:0},{zh:'临',py:'lín', tone:2},{zh:'终',py:'zhōng',tone:1},
+      {zh:'时',py:'shí', tone:2},{zh:'，',py:null}
+    ],
+    translations: { en: 'pray for us sinners, now and at the hour of our death,' }
+  },
+  {
+    tokens: [
+      {zh:'为',py:'wèi', tone:4},{zh:'我',py:'wǒ',  tone:3},{zh:'们',py:'men', tone:0},
+      {zh:'罪',py:'zuì', tone:4},{zh:'人',py:'rén', tone:2},{zh:'祈',py:'qí',  tone:2},
+      {zh:'求',py:'qiú', tone:2},{zh:'天',py:'tiān',tone:1},{zh:'主',py:'zhǔ', tone:3},
+      {zh:'。',py:null}
+    ],
+    translations: { en: 'pray for us sinners.' }
+  },
+  {
+    tokens: [
+      {zh:'阿',py:'ā',  tone:1},{zh:'们',py:'men',tone:0},{zh:'。',py:null}
+    ],
+    translations: { en: 'Amen.' }
+  }
+];
+
+/* ════════════════════════════════════════════════════════════
+   DATA — Character Dictionary
+   ════════════════════════════════════════════════════════════ */
+
+const CHARS = {
+  '万': {
+    py:'wàn', tone:4,
+    meaning:'ten thousand; myriad; innumerable',
+    traditional:'萬', radical:'一', radicalMeaning:'one', strokes:3,
+    components:[{zh:'一',label:'one'},{zh:'刀',label:'knife'}],
+    etymology:'Originally a pictograph of a scorpion. Later borrowed phonetically to mean "ten thousand."',
+    phrases:[
+      {zh:'万岁',py:'wànsuì',   en:'long live; ten thousand years'},
+      {zh:'万物',py:'wànwù',    en:'all things; everything in creation'},
+      {zh:'万福',py:'wànfú',    en:'hail; blessings (greeting)'}
+    ]
+  },
+  '福': {
+    py:'fú', tone:2,
+    meaning:'blessing; good fortune; happiness',
+    traditional:'福', radical:'示', radicalMeaning:'spirit / altar', strokes:13,
+    components:[{zh:'示',label:'altar'},{zh:'口',label:'mouth'},{zh:'田',label:'field'}],
+    etymology:'An altar (示) combined with symbols for abundance — divine favor and blessing.',
+    phrases:[
+      {zh:'幸福',py:'xìngfú',  en:'happiness; blessed; fortunate'},
+      {zh:'祝福',py:'zhùfú',   en:'to bless; blessing; best wishes'},
+      {zh:'福音',py:'fúyīn',   en:'gospel; good news'}
+    ]
+  },
+  '玛': {
+    py:'mǎ', tone:3,
+    meaning:'agate (gemstone); used in transliterations',
+    traditional:'瑪', radical:'王', radicalMeaning:'jade / king', strokes:8,
+    components:[{zh:'王',label:'jade/king'},{zh:'马',label:'horse'}],
+    etymology:'A jade-type character used phonetically to write the "Ma-" of Mary (玛利亚 Mǎlìyà).',
+    phrases:[
+      {zh:'玛利亚',py:'Mǎlìyà',   en:'Mary (name)'},
+      {zh:'玛瑙',  py:'mǎnǎo',    en:'agate (gemstone)'},
+      {zh:'玛雅',  py:'Mǎyǎ',     en:'Maya civilization'}
+    ]
+  },
+  '利': {
+    py:'lì', tone:4,
+    meaning:'sharp; profitable; benefit; advantage',
+    traditional:'利', radical:'刀', radicalMeaning:'knife', strokes:7,
+    components:[{zh:'禾',label:'grain'},{zh:'刀',label:'knife'}],
+    etymology:'A knife (刀) harvesting grain (禾) — the benefit of a sharp, useful tool.',
+    phrases:[
+      {zh:'利益', py:'lìyì',    en:'benefit; interest; profit'},
+      {zh:'胜利', py:'shènglì', en:'victory; triumph'},
+      {zh:'有利', py:'yǒulì',   en:'advantageous; favorable'}
+    ]
+  },
+  '亚': {
+    py:'yà', tone:4,
+    meaning:'second; inferior; Asia; used in transliterations',
+    traditional:'亞', radical:'二', radicalMeaning:'two', strokes:6,
+    components:[{zh:'口',label:'enclosure (×4)'}],
+    etymology:'Ancient pictograph of a floor plan or tomb. Now used for Asia (亚洲) and names like Mary (玛利亚).',
+    phrases:[
+      {zh:'亚洲', py:'Yàzhōu', en:'Asia'},
+      {zh:'亚当', py:'Yàdāng', en:'Adam (name)'},
+      {zh:'亚伯', py:'Yàbó',   en:'Abel (name)'}
+    ]
+  },
+  '你': {
+    py:'nǐ', tone:3,
+    meaning:'you (singular, informal)',
+    traditional:'你', radical:'人', radicalMeaning:'person', strokes:7,
+    components:[{zh:'亻',label:'person'},{zh:'尔',label:'you (classical)'}],
+    etymology:'Person radical (亻) with 尔, an archaic word for "you". A colloquial form that replaced classical 汝.',
+    phrases:[
+      {zh:'你好',   py:'nǐhǎo',    en:'hello; how are you'},
+      {zh:'你们',   py:'nǐmen',    en:'you (plural)'},
+      {zh:'谢谢你', py:'xièxiè nǐ',en:'thank you'}
+    ]
+  },
+  '充': {
+    py:'chōng', tone:1,
+    meaning:'to fill; full; sufficient; to act as',
+    traditional:'充', radical:'儿', radicalMeaning:'legs / person', strokes:6,
+    components:[{zh:'亠',label:'lid/top'},{zh:'儿',label:'legs'}],
+    etymology:'A figure (儿) filled to the top — the sense of being complete, fully charged.',
+    phrases:[
+      {zh:'充满', py:'chōngmǎn', en:'full of; filled with; brimming'},
+      {zh:'充电', py:'chōngdiàn',en:'to charge (battery); to recharge'},
+      {zh:'充分', py:'chōngfèn', en:'sufficient; ample; full'}
+    ]
+  },
+  '满': {
+    py:'mǎn', tone:3,
+    meaning:'full; filled; satisfied; completely',
+    traditional:'滿', radical:'水', radicalMeaning:'water', strokes:13,
+    components:[{zh:'氵',label:'water'},{zh:'艹',label:'grass'},{zh:'両',label:'both'}],
+    etymology:'Water radical (氵) suggesting fullness — like an overflowing vessel or a cup running over.',
+    phrases:[
+      {zh:'满足', py:'mǎnzú',   en:'to satisfy; satisfied; fulfilled'},
+      {zh:'充满', py:'chōngmǎn',en:'full of; filled with'},
+      {zh:'满意', py:'mǎnyì',   en:'satisfied; pleased; content'}
+    ]
+  },
+  '圣': {
+    py:'shèng', tone:4,
+    meaning:'holy; sacred; saint; sage; divine',
+    traditional:'聖', radical:'土', radicalMeaning:'earth', strokes:6,
+    components:[{zh:'又',label:'hand'},{zh:'土',label:'earth'}],
+    etymology:'The traditional form 聖 depicts an ear, mouth, and king — a sage who hears and speaks wisely.',
+    phrases:[
+      {zh:'圣母', py:'shèngmǔ',   en:'Holy Mother; Virgin Mary'},
+      {zh:'圣经', py:'Shèngjīng', en:'the Holy Bible'},
+      {zh:'圣灵', py:'shènglíng', en:'Holy Spirit'}
+    ]
+  },
+  '宠': {
+    py:'chǒng', tone:3,
+    meaning:'to favor; grace; dote on; favor from above',
+    traditional:'寵', radical:'宀', radicalMeaning:'roof / house', strokes:8,
+    components:[{zh:'宀',label:'roof'},{zh:'龙',label:'dragon'}],
+    etymology:'A dragon (龙) sheltered under a roof (宀) — the protection and grace of a powerful, divine being.',
+    phrases:[
+      {zh:'圣宠', py:'shèngchǒng',en:'divine grace; holy favor'},
+      {zh:'宠爱', py:'chǒngài',   en:'to love dearly; to favor'},
+      {zh:'宠物', py:'chǒngwù',   en:'pet (animal)'}
+    ]
+  },
+  '主': {
+    py:'zhǔ', tone:3,
+    meaning:'Lord; master; main; host; God',
+    traditional:'主', radical:'、', radicalMeaning:'dot / flame', strokes:5,
+    components:[{zh:'王',label:'king'},{zh:'、',label:'flame / dot'}],
+    etymology:'A lamp with a flame on top — the lamp-holder, the one in charge, the Lord.',
+    phrases:[
+      {zh:'天主',  py:'Tiānzhǔ',  en:'God (Catholic: Heavenly Lord)'},
+      {zh:'主教',  py:'zhǔjiào',  en:'bishop'},
+      {zh:'主人',  py:'zhǔrén',   en:'host; master; owner'}
+    ]
+  },
+  '与': {
+    py:'yǔ', tone:3,
+    meaning:'and; with; to give; together',
+    traditional:'與', radical:'一', radicalMeaning:'one', strokes:3,
+    components:[{zh:'一',label:'one'}],
+    etymology:'Simplified from 與, which depicted two hands passing something — sharing and connecting.',
+    phrases:[
+      {zh:'与你同在',py:'yǔ nǐ tóngzài',en:'be with you; the Lord be with you'},
+      {zh:'参与',    py:'cānyù',          en:'to participate; to take part'},
+      {zh:'给与',    py:'gěiyǔ',          en:'to give; to grant'}
+    ]
+  },
+  '同': {
+    py:'tóng', tone:2,
+    meaning:'same; together; united; with',
+    traditional:'同', radical:'口', radicalMeaning:'mouth / enclosure', strokes:6,
+    components:[{zh:'冂',label:'enclosure'},{zh:'一',label:'one'},{zh:'口',label:'mouth'}],
+    etymology:'One mouth (口) inside an enclosure — all speaking as one, united together.',
+    phrases:[
+      {zh:'同在', py:'tóngzài',  en:'to be together; dwell with'},
+      {zh:'共同', py:'gòngtóng', en:'common; joint; together'},
+      {zh:'同一', py:'tóngyī',   en:'same; identical; unified'}
+    ]
+  },
+  '在': {
+    py:'zài', tone:4,
+    meaning:'at; in; on; to exist; to be present',
+    traditional:'在', radical:'土', radicalMeaning:'earth', strokes:6,
+    components:[{zh:'才',label:'sprout / talent'},{zh:'土',label:'earth'}],
+    etymology:'A new sprout (才) growing from earth (土) — to exist, to be present, to be alive.',
+    phrases:[
+      {zh:'存在', py:'cúnzài',  en:'to exist; existence'},
+      {zh:'现在', py:'xiànzài', en:'now; at present'},
+      {zh:'自在', py:'zìzài',   en:'free; at ease; comfortable'}
+    ]
+  },
+  '女': {
+    py:'nǚ', tone:3,
+    meaning:'woman; female; daughter',
+    traditional:'女', radical:'女', radicalMeaning:'woman', strokes:3,
+    components:[{zh:'女',label:'woman (self)'}],
+    etymology:'One of the oldest Chinese characters — a pictograph of a kneeling woman with hands crossed gracefully.',
+    phrases:[
+      {zh:'女人', py:'nǚrén',   en:'woman'},
+      {zh:'女儿', py:'nǚér',    en:'daughter'},
+      {zh:'圣女', py:'shèngnǚ', en:'holy woman; female saint'}
+    ]
+  },
+  '中': {
+    py:'zhōng', tone:1,
+    meaning:'middle; center; among; China',
+    traditional:'中', radical:'丨', radicalMeaning:'vertical line', strokes:4,
+    components:[{zh:'口',label:'enclosure'},{zh:'丨',label:'vertical line'}],
+    etymology:'A vertical line through the center of a rectangle — the middle. Also represents China (中国, Middle Kingdom).',
+    phrases:[
+      {zh:'中国', py:'Zhōngguó', en:'China (Middle Kingdom)'},
+      {zh:'中间', py:'zhōngjiān',en:'middle; between; center'},
+      {zh:'其中', py:'qízhōng',  en:'among; in; within'}
+    ]
+  },
+  '受': {
+    py:'shòu', tone:4,
+    meaning:'to receive; to accept; to endure; to suffer',
+    traditional:'受', radical:'又', radicalMeaning:'hand', strokes:8,
+    components:[{zh:'爫',label:'hand (above)'},{zh:'冖',label:'cover'},{zh:'又',label:'hand (below)'}],
+    etymology:'Two hands with something passed between them — the act of receiving from one to another.',
+    phrases:[
+      {zh:'接受', py:'jiēshòu', en:'to accept; to receive'},
+      {zh:'受苦', py:'shòukǔ',  en:'to suffer; to endure hardship'},
+      {zh:'感受', py:'gǎnshòu', en:'to feel; feeling; perception'}
+    ]
+  },
+  '赞': {
+    py:'zàn', tone:4,
+    meaning:'to praise; to commend; to approve',
+    traditional:'贊', radical:'贝', radicalMeaning:'shell / treasure', strokes:16,
+    components:[{zh:'先',label:'first / before'},{zh:'贝',label:'treasure / shell'}],
+    etymology:'Offering treasure (贝) — to give generously in support and praise.',
+    phrases:[
+      {zh:'赞美', py:'zànměi',   en:'to praise; to admire; praise'},
+      {zh:'赞颂', py:'zànsòng',  en:'to glorify; to extol; to laud'},
+      {zh:'称赞', py:'chēngzàn', en:'to praise; to commend'}
+    ]
+  },
+  '颂': {
+    py:'sòng', tone:4,
+    meaning:'to praise; to laud; ode; hymn',
+    traditional:'頌', radical:'页', radicalMeaning:'page / head', strokes:13,
+    components:[{zh:'公',label:'public / fair'},{zh:'页',label:'page / head'}],
+    etymology:'A public (公) proclamation (页 = head/face) — a formal song of praise, an ode or hymn.',
+    phrases:[
+      {zh:'赞颂', py:'zànsòng',  en:'to glorify; to praise'},
+      {zh:'颂扬', py:'sòngyáng', en:'to extol; to eulogize'},
+      {zh:'诗颂', py:'shīsòng',  en:'psalm; sacred song'}
+    ]
+  },
+  '的': {
+    py:'de', tone:0,
+    meaning:'possessive / adjectival particle (\'s, of, -al)',
+    traditional:'的', radical:'白', radicalMeaning:'white / bright', strokes:8,
+    components:[{zh:'白',label:'white / bright'},{zh:'勺',label:'spoon'}],
+    etymology:'Originally "bright" or "clear." Now functions as the key grammatical particle showing possession.',
+    phrases:[
+      {zh:'我的',   py:'wǒde',        en:'my; mine'},
+      {zh:'天主的', py:'Tiānzhǔ de',  en:'God\'s; of God'},
+      {zh:'美丽的', py:'měilì de',    en:'beautiful (adjective marker)'}
+    ]
+  },
+  '亲': {
+    py:'qīn', tone:1,
+    meaning:'parent; kin; dear; intimate; to kiss',
+    traditional:'親', radical:'木', radicalMeaning:'tree / wood', strokes:9,
+    components:[{zh:'立',label:'stand'},{zh:'木',label:'tree'}],
+    etymology:'Standing (立) in a tree (木) to watch over someone — the attentive care of a parent.',
+    phrases:[
+      {zh:'亲爱',  py:'qīnài',  en:'dear; beloved; darling'},
+      {zh:'亲子',  py:'qīnzǐ',  en:'parent and child; one\'s own child'},
+      {zh:'亲人',  py:'qīnrén', en:'family member; loved one'}
+    ]
+  },
+  '子': {
+    py:'zǐ', tone:3,
+    meaning:'child; son; seed; honorific suffix',
+    traditional:'子', radical:'子', radicalMeaning:'child', strokes:3,
+    components:[{zh:'子',label:'child (self)'}],
+    etymology:'A pictograph of a small child with arms raised. Used for "Son of God" and as a respectful suffix (孔子 Confucius).',
+    phrases:[
+      {zh:'孩子', py:'háizi',   en:'child'},
+      {zh:'儿子', py:'érzi',    en:'son'},
+      {zh:'亲子', py:'qīnzǐ',  en:'one\'s own child; parent-child'}
+    ]
+  },
+  '耶': {
+    py:'yē', tone:1,
+    meaning:'phonetic character used in transliterations',
+    traditional:'耶', radical:'耳', radicalMeaning:'ear', strokes:11,
+    components:[{zh:'耳',label:'ear'},{zh:'阝',label:'mound / place'}],
+    etymology:'Used phonetically to write "Je-" in Jesus (耶稣 Yēsū) and Jerusalem (耶路撒冷 Yēlùsālěng).',
+    phrases:[
+      {zh:'耶稣',    py:'Yēsū',         en:'Jesus'},
+      {zh:'耶路撒冷',py:'Yēlùsālěng',   en:'Jerusalem'},
+      {zh:'耶稣基督',py:'Yēsū Jīdū',    en:'Jesus Christ'}
+    ]
+  },
+  '稣': {
+    py:'sū', tone:1,
+    meaning:'used in transliteration — the "-su" of Jesus',
+    traditional:'穌', radical:'鱼', radicalMeaning:'fish', strokes:12,
+    components:[{zh:'鱼',label:'fish'},{zh:'禾',label:'grain'}],
+    etymology:'Fish (鱼) and grain (禾). Used phonetically in Jesus (耶稣). Notably, the fish (ICHTYS) is an early Christian symbol.',
+    phrases:[
+      {zh:'耶稣',    py:'Yēsū',      en:'Jesus'},
+      {zh:'耶稣基督',py:'Yēsū Jīdū', en:'Jesus Christ'},
+      {zh:'耶稣会',  py:'Yēsūhuì',   en:'Society of Jesus (Jesuits)'}
+    ]
+  },
+  '天': {
+    py:'tiān', tone:1,
+    meaning:'heaven; sky; God; day; nature',
+    traditional:'天', radical:'大', radicalMeaning:'great / big', strokes:4,
+    components:[{zh:'大',label:'great / person'},{zh:'一',label:'heaven above'}],
+    etymology:'A person (大) with a line above their head — what is beyond us: the sky, heaven, and God.',
+    phrases:[
+      {zh:'天主', py:'Tiānzhǔ', en:'God (Heavenly Lord — Catholic term)'},
+      {zh:'天堂', py:'tiāntáng',en:'heaven; paradise'},
+      {zh:'天国', py:'tiānguó', en:'Kingdom of Heaven'}
+    ]
+  },
+  '母': {
+    py:'mǔ', tone:3,
+    meaning:'mother; origin; female',
+    traditional:'母', radical:'母', radicalMeaning:'mother', strokes:5,
+    components:[{zh:'女',label:'woman'},{zh:'·',label:'dots = breasts'}],
+    etymology:'A woman (女) with two dots representing breasts — the nurturing, life-giving mother.',
+    phrases:[
+      {zh:'圣母',    py:'shèngmǔ',         en:'Holy Mother; Virgin Mary'},
+      {zh:'母亲',    py:'mǔqīn',           en:'mother (formal)'},
+      {zh:'天主圣母',py:'Tiānzhǔ shèngmǔ', en:'Mother of God; Holy Mary'}
+    ]
+  },
+  '求': {
+    py:'qiú', tone:2,
+    meaning:'to seek; to beg; to pray; to request',
+    traditional:'求', radical:'水', radicalMeaning:'water', strokes:7,
+    components:[{zh:'氺',label:'water'}],
+    etymology:'Originally depicted a fur garment — something precious sought after. Now means to seek or implore earnestly.',
+    phrases:[
+      {zh:'祈求', py:'qíqiú',   en:'to pray for; to beseech; to implore'},
+      {zh:'请求', py:'qǐngqiú', en:'to request; request'},
+      {zh:'追求', py:'zhuīqiú', en:'to pursue; to seek'}
+    ]
+  },
+  '现': {
+    py:'xiàn', tone:4,
+    meaning:'now; present; current; to appear; to show',
+    traditional:'現', radical:'王', radicalMeaning:'jade / king', strokes:8,
+    components:[{zh:'王',label:'jade'},{zh:'见',label:'to see'}],
+    etymology:'Jade (玉/王) that can be seen (见) — something brilliant brought to light, revealed.',
+    phrases:[
+      {zh:'现在', py:'xiànzài',  en:'now; at present; currently'},
+      {zh:'出现', py:'chūxiàn',  en:'to appear; to emerge'},
+      {zh:'实现', py:'shíxiàn',  en:'to realize; to achieve; to fulfill'}
+    ]
+  },
+  '和': {
+    py:'hé', tone:2,
+    meaning:'and; with; harmony; peace; gentle',
+    traditional:'和', radical:'口', radicalMeaning:'mouth', strokes:8,
+    components:[{zh:'禾',label:'grain'},{zh:'口',label:'mouth'}],
+    etymology:'Grain (禾) and mouth (口) — when people have enough to eat, there is harmony and peace.',
+    phrases:[
+      {zh:'和平', py:'hépíng', en:'peace'},
+      {zh:'和谐', py:'héxié',  en:'harmony; harmonious'},
+      {zh:'温和', py:'wēnhé',  en:'gentle; mild; moderate'}
+    ]
+  },
+  '我': {
+    py:'wǒ', tone:3,
+    meaning:'I; me; my; self',
+    traditional:'我', radical:'戈', radicalMeaning:'spear / weapon', strokes:7,
+    components:[{zh:'手',label:'hand'},{zh:'戈',label:'spear'}],
+    etymology:'A hand gripping a spear — asserting one\'s identity and presence. The self, standing firm.',
+    phrases:[
+      {zh:'我们', py:'wǒmen',  en:'we; us; our'},
+      {zh:'自我', py:'zìwǒ',   en:'self; ego; oneself'},
+      {zh:'我的', py:'wǒde',   en:'my; mine'}
+    ]
+  },
+  '们': {
+    py:'men', tone:0,
+    meaning:'plural suffix for pronouns (we, you all, they)',
+    traditional:'們', radical:'人', radicalMeaning:'person', strokes:5,
+    components:[{zh:'亻',label:'person'},{zh:'门',label:'door / gate'}],
+    etymology:'Person (亻) at a door (门) — multiple people coming and going, creating the plural.',
+    phrases:[
+      {zh:'我们', py:'wǒmen', en:'we; us'},
+      {zh:'你们', py:'nǐmen', en:'you (plural)'},
+      {zh:'他们', py:'tāmen', en:'they; them'}
+    ]
+  },
+  '临': {
+    py:'lín', tone:2,
+    meaning:'to arrive; to face; on the verge of; overlooking',
+    traditional:'臨', radical:'人', radicalMeaning:'person', strokes:9,
+    components:[{zh:'人',label:'person'},{zh:'品',label:'many things'}],
+    etymology:'A person looking down upon many things — arriving at a moment, facing what lies before you.',
+    phrases:[
+      {zh:'临终', py:'línzhōng',en:'at the hour of death; dying moment'},
+      {zh:'来临', py:'láilín',  en:'to arrive; to come; advent'},
+      {zh:'降临', py:'jiànglín',en:'to descend; to come down; the Advent'}
+    ]
+  },
+  '终': {
+    py:'zhōng', tone:1,
+    meaning:'end; final; eventually; death',
+    traditional:'終', radical:'糸', radicalMeaning:'silk / thread', strokes:8,
+    components:[{zh:'纟',label:'thread / silk'},{zh:'冬',label:'winter'}],
+    etymology:'Thread (纟) reaching winter (冬) — the end of the year, the last thread, the conclusion.',
+    phrases:[
+      {zh:'临终', py:'línzhōng',  en:'dying hour; at the hour of death'},
+      {zh:'终于', py:'zhōngyú',   en:'finally; at last; eventually'},
+      {zh:'最终', py:'zuìzhōng',  en:'final; ultimately; in the end'}
+    ]
+  },
+  '时': {
+    py:'shí', tone:2,
+    meaning:'time; hour; season; when; era',
+    traditional:'時', radical:'日', radicalMeaning:'sun / day', strokes:7,
+    components:[{zh:'日',label:'sun / day'},{zh:'寸',label:'inch / small moment'}],
+    etymology:'The sun (日) measured in small moments (寸) — time as tracked by the movement of light.',
+    phrases:[
+      {zh:'时间',   py:'shíjiān',      en:'time; duration'},
+      {zh:'临终时', py:'línzhōng shí', en:'at the hour of death'},
+      {zh:'此时',   py:'cǐshí',        en:'at this moment; right now'}
+    ]
+  },
+  '为': {
+    py:'wèi', tone:4,
+    meaning:'for; for the sake of; because of; in order to',
+    traditional:'為', radical:'、', radicalMeaning:'dot', strokes:4,
+    components:[{zh:'爪',label:'claw'},{zh:'象',label:'elephant (partial)'}],
+    etymology:'Originally showed a hand guiding an elephant — laboring for, acting on behalf of a purpose.',
+    phrases:[
+      {zh:'为了', py:'wèile',  en:'for; for the purpose of; in order to'},
+      {zh:'因为', py:'yīnwèi', en:'because; due to'},
+      {zh:'为何', py:'wèihé',  en:'why; for what reason'}
+    ]
+  },
+  '罪': {
+    py:'zuì', tone:4,
+    meaning:'sin; crime; guilt; offense; fault',
+    traditional:'罪', radical:'网', radicalMeaning:'net', strokes:13,
+    components:[{zh:'网',label:'net'},{zh:'非',label:'wrong / not'}],
+    etymology:'A net (网) catching what is wrong (非) — being caught in wrongdoing; sin, crime, guilt.',
+    phrases:[
+      {zh:'罪人', py:'zuìrén',  en:'sinner; guilty person; criminal'},
+      {zh:'原罪', py:'yuánzuì', en:'original sin'},
+      {zh:'赦罪', py:'shèzuì',  en:'to forgive sins; absolution'}
+    ]
+  },
+  '人': {
+    py:'rén', tone:2,
+    meaning:'person; human being; people; man',
+    traditional:'人', radical:'人', radicalMeaning:'person', strokes:2,
+    components:[{zh:'人',label:'person (self)'}],
+    etymology:'One of the most ancient characters — a simple, elegant pictograph of a person standing upright.',
+    phrases:[
+      {zh:'人类', py:'rénlèi',   en:'humanity; humankind'},
+      {zh:'罪人', py:'zuìrén',   en:'sinner; guilty person'},
+      {zh:'圣人', py:'shèngrén', en:'saint; holy person; sage'}
+    ]
+  },
+  '祈': {
+    py:'qí', tone:2,
+    meaning:'to pray; to invoke; to implore; prayer',
+    traditional:'祈', radical:'示', radicalMeaning:'spirit / altar', strokes:9,
+    components:[{zh:'示',label:'altar / spirit'},{zh:'斤',label:'axe / weight'}],
+    etymology:'The altar radical (示) with a solemn offering — making ritual supplication before the divine.',
+    phrases:[
+      {zh:'祈祷', py:'qídǎo',  en:'to pray; prayer'},
+      {zh:'祈求', py:'qíqiú',  en:'to pray for; to beseech; to implore'},
+      {zh:'祈愿', py:'qíyuàn', en:'to pray for a wish; to wish fervently'}
+    ]
+  },
+  '阿': {
+    py:'ā', tone:1,
+    meaning:'phonetic prefix; ah!; used in names / transliterations',
+    traditional:'阿', radical:'阜', radicalMeaning:'mound / hill', strokes:8,
+    components:[{zh:'阝',label:'mound / hill'},{zh:'可',label:'can / possible'}],
+    etymology:'Originally meant a curve in terrain. Now mainly phonetic: Amen (阿们), Allah (阿拉), and many names.',
+    phrases:[
+      {zh:'阿们',   py:'āmen',        en:'Amen'},
+      {zh:'阿拉伯', py:'Ālābó',       en:'Arabic; Arab'},
+      {zh:'阿弥陀佛',py:'Āmítuófó',  en:'Amitabha (Buddhist prayer)'}
+    ]
+  }
+};
+
+/* ════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════ */
+
+let currentLang   = 'en';
+let playSpeed     = 0.75;
+let isPlaying     = false;
+let selectedVoice = null;
+let currentChar   = null;
+
+// Flashcard state
+let flashcards  = [];           // persisted to localStorage
+let fcSession   = [];           // shuffled copy for current session
+let fcIndex     = 0;
+let fcCorrect   = 0;
+let fcWrong     = 0;
+let fcFlipped   = false;
+
+const FC_KEY = 'sacredChinese_fc_v1';
+
+/* ════════════════════════════════════════════════════════════
+   SPEECH
+   ════════════════════════════════════════════════════════════ */
+
+function loadVoices() {
+  const all   = speechSynthesis.getVoices();
+  const zhVoices = all.filter(v => v.lang && v.lang.startsWith('zh'));
+  selectedVoice  = zhVoices.find(v => v.lang === 'zh-CN')
+                || zhVoices.find(v => v.lang === 'zh-TW')
+                || zhVoices[0]
+                || null;
+
+  const el = document.getElementById('voice-status');
+  if (selectedVoice) {
+    el.textContent = '🎙 ' + selectedVoice.name;
+  } else {
+    el.textContent = '⚠ No Mandarin voice';
+    document.getElementById('no-voice-note').style.display = 'block';
+  }
+}
+
+function speak(text, rate) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN';
+  u.rate = rate || playSpeed;
+  if (selectedVoice) u.voice = selectedVoice;
+  return u;
+}
+
+function speakChar(ch) {
+  const u = speak(ch, 0.6);
+  speechSynthesis.speak(u);
+}
+
+function getFullText() {
+  return PRAYER_SEGMENTS.map(s => s.tokens.map(t => t.zh).join('')).join('');
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    speechSynthesis.pause();
+    isPlaying = false;
+    document.getElementById('btn-play-pause').classList.remove('playing');
+    document.getElementById('btn-play-pause').textContent = '▶';
+  } else {
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+    } else {
+      const u = speak(getFullText());
+      u.onstart = () => {
+        isPlaying = true;
+        document.getElementById('btn-play-pause').classList.add('playing');
+        document.getElementById('btn-play-pause').textContent = '⏸';
+      };
+      u.onend = u.onerror = () => {
+        isPlaying = false;
+        document.getElementById('btn-play-pause').classList.remove('playing');
+        document.getElementById('btn-play-pause').textContent = '▶';
+      };
+      speechSynthesis.speak(u);
+    }
+    isPlaying = true;
+    document.getElementById('btn-play-pause').classList.add('playing');
+    document.getElementById('btn-play-pause').textContent = '⏸';
+  }
+}
+
+function setSpeed(s) {
+  playSpeed = s;
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.classList.toggle('selected', parseFloat(b.dataset.speed) === s);
+  });
+  if (isPlaying) {
+    speechSynthesis.cancel();
+    isPlaying = false;
+    document.getElementById('btn-play-pause').classList.remove('playing');
+    document.getElementById('btn-play-pause').textContent = '▶';
+    togglePlay(); // restart at new speed
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   PRAYER RENDERING
+   ════════════════════════════════════════════════════════════ */
+
+function toneClass(t) {
+  return t === null ? '' : `t${t}`;
+}
+
+function renderPrayer() {
+  const container = document.getElementById('prayer-text');
+  container.innerHTML = PRAYER_SEGMENTS.map((seg, si) => {
+    const tokens = seg.tokens.map(tok => {
+      if (!tok.py) {
+        return `<span class="char-unit punct"><span class="py"></span><span class="hz">${tok.zh}</span></span>`;
+      }
+      return `<span class="char-unit" data-char="${tok.zh}" onclick="openPanel('${tok.zh}')">` +
+             `<span class="py ${toneClass(tok.tone)}">${tok.py}</span>` +
+             `<span class="hz">${tok.zh}</span>` +
+             `</span>`;
+    }).join('');
+
+    const trans = seg.translations[currentLang] || '';
+    return `<div class="prayer-segment" id="seg-${si}">` +
+           `<div class="char-row">${tokens}</div>` +
+           `<div class="seg-english">${trans}</div>` +
+           `</div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════
+   DETAIL PANEL
+   ════════════════════════════════════════════════════════════ */
+
+function openPanel(ch) {
+  const d = CHARS[ch];
+  if (!d) return;
+  currentChar = ch;
+
+  // highlight
+  document.querySelectorAll('.char-unit').forEach(el =>
+    el.classList.toggle('lit', el.dataset.char === ch));
+
+  // hero
+  document.getElementById('detail-char-big').textContent   = ch;
+  const pinEl = document.getElementById('detail-pinyin-big');
+  pinEl.textContent  = d.py;
+  pinEl.className    = toneClass(d.tone);
+  document.getElementById('detail-meaning').textContent    = d.meaning;
+  document.getElementById('detail-meta').textContent       =
+    (d.traditional && d.traditional !== ch ? `Traditional: ${d.traditional}  ·  ` : '') +
+    `${d.strokes} strokes  ·  Radical: ${d.radical} (${d.radicalMeaning})`;
+
+  // breakdown
+  const grid = document.getElementById('breakdown-grid');
+  grid.innerHTML =
+    `<span class="radical-badge"><span class="bc-zh">${d.radical}</span><span class="bc-label">radical</span></span>` +
+    d.components.map(c =>
+      `<span class="breakdown-chip"><span class="bc-zh">${c.zh}</span><span class="bc-label">${c.label}</span></span>`
+    ).join('');
+  document.getElementById('etymology-note').textContent = d.etymology || '';
+
+  // phrases
+  document.getElementById('phrases-list').innerHTML = d.phrases.map(p =>
+    `<div class="phrase-row">` +
+    `<span class="phrase-zh">${p.zh}</span>` +
+    `<span class="phrase-py">${p.py}</span>` +
+    `<span class="phrase-en">${p.en}</span>` +
+    `</div>`
+  ).join('');
+
+  // flashcard button state
+  const btn = document.getElementById('btn-add-fc');
+  const inDeck = flashcards.some(f => f.char === ch);
+  btn.textContent = inDeck ? '✓ In Flashcards' : '+ Add to Flashcards';
+  btn.classList.toggle('in-deck', inDeck);
+
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('detail-backdrop').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('detail-backdrop').classList.remove('open');
+  document.querySelectorAll('.char-unit').forEach(el => el.classList.remove('lit'));
+  currentChar = null;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLASHCARDS
+   ════════════════════════════════════════════════════════════ */
+
+function loadFC() {
+  try { flashcards = JSON.parse(localStorage.getItem(FC_KEY)) || []; }
+  catch { flashcards = []; }
+}
+function saveFC() {
+  localStorage.setItem(FC_KEY, JSON.stringify(flashcards));
+}
+
+function toggleFlashcard() {
+  if (!currentChar) return;
+  const d = CHARS[currentChar];
+  if (!d) return;
+
+  const idx = flashcards.findIndex(f => f.char === currentChar);
+  if (idx >= 0) {
+    flashcards.splice(idx, 1);
+    document.getElementById('btn-add-fc').textContent = '+ Add to Flashcards';
+    document.getElementById('btn-add-fc').classList.remove('in-deck');
+    showToast(`Removed ${currentChar} from flashcards`);
+  } else {
+    flashcards.push({ char: currentChar, py: d.py, tone: d.tone, meaning: d.meaning });
+    document.getElementById('btn-add-fc').textContent = '✓ In Flashcards';
+    document.getElementById('btn-add-fc').classList.add('in-deck');
+    showToast(`Added ${currentChar} to flashcards!`);
+  }
+  saveFC();
+}
+
+function shuffleAndStart() {
+  if (!flashcards.length) return;
+  fcSession = [...flashcards].sort(() => Math.random() - 0.5);
+  fcIndex   = 0;
+  fcCorrect = 0;
+  fcWrong   = 0;
+  fcFlipped = false;
+  document.getElementById('fc-complete').style.display = 'none';
+  renderFCView();
+}
+
+function renderFCView() {
+  document.getElementById('fc-total').textContent   = flashcards.length;
+  document.getElementById('fc-correct').textContent = fcCorrect;
+  document.getElementById('fc-wrong').textContent   = fcWrong;
+
+  if (!flashcards.length) {
+    document.getElementById('fc-empty').style.display  = 'block';
+    document.getElementById('fc-study').style.display  = 'none';
+    document.getElementById('fc-complete').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('fc-empty').style.display = 'none';
+
+  if (!fcSession.length) shuffleAndStart();
+
+  const card = fcSession[fcIndex];
+  document.getElementById('fc-progress').textContent = `Card ${fcIndex + 1} of ${fcSession.length} — click to reveal`;
+  document.getElementById('fc-char-display').textContent = card.char;
+
+  const pinEl = document.getElementById('fc-back-pinyin');
+  pinEl.textContent = card.py;
+  pinEl.className   = toneClass(card.tone);
+  document.getElementById('fc-back-meaning').textContent = card.meaning;
+
+  const cardEl = document.getElementById('fc-card');
+  cardEl.classList.toggle('flipped', fcFlipped);
+
+  const actEl = document.getElementById('fc-actions');
+  actEl.style.display = fcFlipped ? 'flex' : 'none';
+
+  document.getElementById('fc-study').style.display = 'block';
+}
+
+function flipCard() {
+  fcFlipped = !fcFlipped;
+  document.getElementById('fc-card').classList.toggle('flipped', fcFlipped);
+  document.getElementById('fc-actions').style.display = fcFlipped ? 'flex' : 'none';
+}
+
+function rateCard(correct) {
+  if (correct) fcCorrect++; else fcWrong++;
+  fcIndex++;
+  fcFlipped = false;
+
+  document.getElementById('fc-total').textContent   = flashcards.length;
+  document.getElementById('fc-correct').textContent = fcCorrect;
+  document.getElementById('fc-wrong').textContent   = fcWrong;
+
+  if (fcIndex >= fcSession.length) {
+    // Session done
+    document.getElementById('fc-study').style.display   = 'none';
+    const comp = document.getElementById('fc-complete');
+    comp.style.display = 'block';
+    document.getElementById('fc-complete-msg').innerHTML =
+      `✓ Correct: <strong>${fcCorrect}</strong> &nbsp; ✗ Review: <strong>${fcWrong}</strong>`;
+  } else {
+    renderFCView();
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   NAVIGATION
+   ════════════════════════════════════════════════════════════ */
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(`${name}-view`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
+  closePanel();
+  if (name === 'flashcards') renderFCView();
+}
+
+/* ════════════════════════════════════════════════════════════
+   TOAST
+   ════════════════════════════════════════════════════════════ */
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFC();
+  renderPrayer();
+
+  // Voices load asynchronously in some browsers
+  if (typeof speechSynthesis !== 'undefined') {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  } else {
+    document.getElementById('voice-status').textContent = '⚠ Speech not supported';
+    document.getElementById('no-voice-note').style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
