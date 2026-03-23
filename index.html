@@ -255,9 +255,6 @@
       text-align: center; padding: 1.5rem 0 1.25rem;
       border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;
     }
-    #detail-char-big {
-      font-size: 5.5rem; line-height: 1; color: var(--primary); font-weight: 700;
-    }
     #detail-pinyin-big {
       font-size: 1.4rem; font-weight: 600; margin: 0.3rem 0 0.15rem;
     }
@@ -436,6 +433,48 @@
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
 
+    /* ─── Script Toggle ──────────────────────────────────── */
+    #script-toggle {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 22px; padding: 3px; gap: 2px;
+    }
+    .script-opt {
+      background: transparent; border: none; color: rgba(255,255,255,0.7);
+      padding: 0.25rem 0.75rem; border-radius: 18px;
+      font-size: 0.82rem; transition: all 0.18s; white-space: nowrap;
+    }
+    .script-opt.active {
+      background: var(--accent); color: #fff; font-weight: 600;
+    }
+    .script-opt:hover:not(.active) { color: #fff; }
+
+    /* ─── Panel hero — side-by-side characters ───────────── */
+    #detail-chars-row {
+      display: flex; gap: 1.25rem; justify-content: center;
+      align-items: flex-end; margin-bottom: 0.75rem;
+    }
+    .char-script-box {
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      border: 2px solid var(--border); transition: all 0.2s; cursor: default;
+    }
+    .char-script-box.active-script {
+      border-color: var(--accent);
+      background: rgba(184,134,42,0.08);
+      box-shadow: 0 2px 10px rgba(184,134,42,0.15);
+    }
+    .csb-char {
+      font-size: 3.8rem; color: var(--primary); line-height: 1; font-weight: 700;
+    }
+    .char-script-box.active-script .csb-char { color: var(--primary); }
+    .csb-label {
+      font-size: 0.6rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .char-script-box.active-script .csb-label { color: var(--accent); font-weight: 600; }
+
     /* ─── Responsive ─────────────────────────────────────── */
     @media (max-width: 640px) {
       #app-header h1 { font-size: 1rem; }
@@ -443,6 +482,8 @@
       .char-unit .hz { font-size: 1.5rem; }
       #detail-panel { width: 100%; }
       #prayer-header .zh-title { font-size: 1.9rem; }
+      .csb-char { font-size: 3rem; }
+      #detail-chars-row { gap: 0.75rem; }
     }
   </style>
 </head>
@@ -451,6 +492,10 @@
 <!-- ══════════ HEADER ══════════ -->
 <header id="app-header">
   <h1>Sacred <span>Chinese</span> <small>神圣汉语 — Learn Through Prayer</small></h1>
+  <div id="script-toggle" title="Switch between Simplified and Traditional Chinese">
+    <button class="script-opt active" id="opt-simp" onclick="setScript('simp')">簡 Simplified</button>
+    <button class="script-opt"        id="opt-trad" onclick="setScript('trad')">繁 Traditional</button>
+  </div>
   <nav>
     <button id="nav-prayer"     class="active" onclick="showView('prayer')">Prayers 祈祷</button>
     <button id="nav-flashcards"               onclick="showView('flashcards')">Flashcards 抽认卡</button>
@@ -563,7 +608,16 @@
   <button id="detail-close" onclick="closePanel()">✕</button>
 
   <div id="detail-hero">
-    <div id="detail-char-big"></div>
+    <div id="detail-chars-row">
+      <div class="char-script-box" id="csb-trad">
+        <div class="csb-char" id="detail-char-trad"></div>
+        <div class="csb-label">繁體 Traditional</div>
+      </div>
+      <div class="char-script-box" id="csb-simp">
+        <div class="csb-char" id="detail-char-simp"></div>
+        <div class="csb-label">簡體 Simplified</div>
+      </div>
+    </div>
     <div id="detail-pinyin-big"></div>
     <div id="detail-meaning"></div>
     <div id="detail-meta"></div>
@@ -595,75 +649,75 @@
    DATA — Prayer
    ════════════════════════════════════════════════════════════ */
 
-/* Each token: { zh, py, tone }  tone: 1-4 or 0 for neutral, null for punct */
+/* Each token: { zh (simplified), trad (traditional), py, tone }  tone: 1-4, 0 neutral, null for punct */
 const PRAYER_SEGMENTS = [
   {
     tokens: [
-      {zh:'万',py:'wàn',tone:4},{zh:'福',py:'fú',tone:2},{zh:'玛',py:'mǎ',tone:3},
-      {zh:'利',py:'lì', tone:4},{zh:'亚',py:'yà',tone:4},{zh:'，',py:null}
+      {zh:'万',trad:'萬',py:'wàn',tone:4},{zh:'福',trad:'福',py:'fú',tone:2},{zh:'玛',trad:'瑪',py:'mǎ',tone:3},
+      {zh:'利',trad:'利',py:'lì', tone:4},{zh:'亚',trad:'亞',py:'yà',tone:4},{zh:'，',py:null}
     ],
     translations: { en: 'Hail Mary,' }
   },
   {
     tokens: [
-      {zh:'你',py:'nǐ',   tone:3},{zh:'充',py:'chōng',tone:1},{zh:'满',py:'mǎn',tone:3},
-      {zh:'圣',py:'shèng',tone:4},{zh:'宠',py:'chǒng',tone:3},{zh:'，',py:null}
+      {zh:'你',trad:'你',py:'nǐ',   tone:3},{zh:'充',trad:'充',py:'chōng',tone:1},{zh:'满',trad:'滿',py:'mǎn',tone:3},
+      {zh:'圣',trad:'聖',py:'shèng',tone:4},{zh:'宠',trad:'寵',py:'chǒng',tone:3},{zh:'，',py:null}
     ],
     translations: { en: 'full of grace,' }
   },
   {
     tokens: [
-      {zh:'主',py:'zhǔ',tone:3},{zh:'与',py:'yǔ', tone:3},{zh:'你',py:'nǐ',  tone:3},
-      {zh:'同',py:'tóng',tone:2},{zh:'在',py:'zài',tone:4},{zh:'；',py:null}
+      {zh:'主',trad:'主',py:'zhǔ',tone:3},{zh:'与',trad:'與',py:'yǔ', tone:3},{zh:'你',trad:'你',py:'nǐ',  tone:3},
+      {zh:'同',trad:'同',py:'tóng',tone:2},{zh:'在',trad:'在',py:'zài',tone:4},{zh:'；',py:null}
     ],
     translations: { en: 'the Lord is with thee;' }
   },
   {
     tokens: [
-      {zh:'你',py:'nǐ',   tone:3},{zh:'在',py:'zài', tone:4},{zh:'女',py:'nǚ',  tone:3},
-      {zh:'中',py:'zhōng',tone:1},{zh:'受',py:'shòu',tone:4},{zh:'赞',py:'zàn',tone:4},
-      {zh:'颂',py:'sòng', tone:4},{zh:'，',py:null}
+      {zh:'你',trad:'你', py:'nǐ',   tone:3},{zh:'在',trad:'在', py:'zài', tone:4},{zh:'女',trad:'女',py:'nǚ',  tone:3},
+      {zh:'中',trad:'中', py:'zhōng',tone:1},{zh:'受',trad:'受', py:'shòu',tone:4},{zh:'赞',trad:'贊',py:'zàn',tone:4},
+      {zh:'颂',trad:'頌', py:'sòng', tone:4},{zh:'，',py:null}
     ],
     translations: { en: 'blessed art thou amongst women,' }
   },
   {
     tokens: [
-      {zh:'你',py:'nǐ',  tone:3},{zh:'的',py:'de',  tone:0},{zh:'亲',py:'qīn', tone:1},
-      {zh:'子',py:'zǐ',  tone:3},{zh:'耶',py:'yē',  tone:1},{zh:'稣',py:'sū',  tone:1},
-      {zh:'同',py:'tóng',tone:2},{zh:'受',py:'shòu',tone:4},{zh:'赞',py:'zàn',tone:4},
-      {zh:'颂',py:'sòng',tone:4},{zh:'。',py:null}
+      {zh:'你',trad:'你',py:'nǐ',  tone:3},{zh:'的',trad:'的',py:'de',  tone:0},{zh:'亲',trad:'親',py:'qīn', tone:1},
+      {zh:'子',trad:'子',py:'zǐ',  tone:3},{zh:'耶',trad:'耶',py:'yē',  tone:1},{zh:'稣',trad:'穌',py:'sū',  tone:1},
+      {zh:'同',trad:'同',py:'tóng',tone:2},{zh:'受',trad:'受',py:'shòu',tone:4},{zh:'赞',trad:'贊',py:'zàn',tone:4},
+      {zh:'颂',trad:'頌',py:'sòng',tone:4},{zh:'。',py:null}
     ],
     translations: { en: 'and blessed is the fruit of thy womb, Jesus.' }
   },
   {
     tokens: [
-      {zh:'天',py:'tiān',tone:1},{zh:'主',py:'zhǔ',tone:3},{zh:'圣',py:'shèng',tone:4},
-      {zh:'母',py:'mǔ',  tone:3},{zh:'玛',py:'mǎ', tone:3},{zh:'利',py:'lì',   tone:4},
-      {zh:'亚',py:'yà',  tone:4},{zh:'，',py:null}
+      {zh:'天',trad:'天',py:'tiān',tone:1},{zh:'主',trad:'主',py:'zhǔ',tone:3},{zh:'圣',trad:'聖',py:'shèng',tone:4},
+      {zh:'母',trad:'母',py:'mǔ',  tone:3},{zh:'玛',trad:'瑪',py:'mǎ', tone:3},{zh:'利',trad:'利',py:'lì',   tone:4},
+      {zh:'亚',trad:'亞',py:'yà',  tone:4},{zh:'，',py:null}
     ],
     translations: { en: 'Holy Mary, Mother of God,' }
   },
   {
     tokens: [
-      {zh:'求',py:'qiú', tone:2},{zh:'你',py:'nǐ',  tone:3},{zh:'现',py:'xiàn',tone:4},
-      {zh:'在',py:'zài', tone:4},{zh:'和',py:'hé',  tone:2},{zh:'我',py:'wǒ',  tone:3},
-      {zh:'们',py:'men', tone:0},{zh:'临',py:'lín', tone:2},{zh:'终',py:'zhōng',tone:1},
-      {zh:'时',py:'shí', tone:2},{zh:'，',py:null}
+      {zh:'求',trad:'求',py:'qiú', tone:2},{zh:'你',trad:'你',py:'nǐ',  tone:3},{zh:'现',trad:'現',py:'xiàn',tone:4},
+      {zh:'在',trad:'在',py:'zài', tone:4},{zh:'和',trad:'和',py:'hé',  tone:2},{zh:'我',trad:'我',py:'wǒ',  tone:3},
+      {zh:'们',trad:'們',py:'men', tone:0},{zh:'临',trad:'臨',py:'lín', tone:2},{zh:'终',trad:'終',py:'zhōng',tone:1},
+      {zh:'时',trad:'時',py:'shí', tone:2},{zh:'，',py:null}
     ],
     translations: { en: 'pray for us sinners, now and at the hour of our death,' }
   },
   {
     tokens: [
-      {zh:'为',py:'wèi', tone:4},{zh:'我',py:'wǒ',  tone:3},{zh:'们',py:'men', tone:0},
-      {zh:'罪',py:'zuì', tone:4},{zh:'人',py:'rén', tone:2},{zh:'祈',py:'qí',  tone:2},
-      {zh:'求',py:'qiú', tone:2},{zh:'天',py:'tiān',tone:1},{zh:'主',py:'zhǔ', tone:3},
+      {zh:'为',trad:'為',py:'wèi', tone:4},{zh:'我',trad:'我',py:'wǒ',  tone:3},{zh:'们',trad:'們',py:'men', tone:0},
+      {zh:'罪',trad:'罪',py:'zuì', tone:4},{zh:'人',trad:'人',py:'rén', tone:2},{zh:'祈',trad:'祈',py:'qí',  tone:2},
+      {zh:'求',trad:'求',py:'qiú', tone:2},{zh:'天',trad:'天',py:'tiān',tone:1},{zh:'主',trad:'主',py:'zhǔ', tone:3},
       {zh:'。',py:null}
     ],
     translations: { en: 'pray for us sinners.' }
   },
   {
     tokens: [
-      {zh:'阿',py:'ā',  tone:1},{zh:'们',py:'men',tone:0},{zh:'。',py:null}
+      {zh:'阿',trad:'阿',py:'ā',  tone:1},{zh:'们',trad:'們',py:'men',tone:0},{zh:'。',py:null}
     ],
     translations: { en: 'Amen.' }
   }
@@ -1148,11 +1202,12 @@ const CHARS = {
    STATE
    ════════════════════════════════════════════════════════════ */
 
-let currentLang   = 'en';
-let playSpeed     = 0.75;
-let isPlaying     = false;
-let selectedVoice = null;
-let currentChar   = null;
+let currentLang    = 'en';
+let chineseScript  = 'simp';   // 'simp' | 'trad'
+let playSpeed      = 0.75;
+let isPlaying      = false;
+let selectedVoice  = null;
+let currentChar    = null;
 
 // Flashcard state
 let flashcards  = [];           // persisted to localStorage
@@ -1200,7 +1255,9 @@ function speakChar(ch) {
 }
 
 function getFullText() {
-  return PRAYER_SEGMENTS.map(s => s.tokens.map(t => t.zh).join('')).join('');
+  return PRAYER_SEGMENTS.map(s =>
+    s.tokens.map(t => t.py ? (chineseScript === 'trad' ? t.trad : t.zh) : t.zh).join('')
+  ).join('');
 }
 
 function togglePlay() {
@@ -1261,9 +1318,12 @@ function renderPrayer() {
       if (!tok.py) {
         return `<span class="char-unit punct"><span class="py"></span><span class="hz">${tok.zh}</span></span>`;
       }
+      // Always use simplified as the data-char key for dictionary lookup;
+      // display character switches with the global script toggle.
+      const displayChar = chineseScript === 'trad' ? tok.trad : tok.zh;
       return `<span class="char-unit" data-char="${tok.zh}" onclick="openPanel('${tok.zh}')">` +
              `<span class="py ${toneClass(tok.tone)}">${tok.py}</span>` +
-             `<span class="hz">${tok.zh}</span>` +
+             `<span class="hz">${displayChar}</span>` +
              `</span>`;
     }).join('');
 
@@ -1288,14 +1348,19 @@ function openPanel(ch) {
   document.querySelectorAll('.char-unit').forEach(el =>
     el.classList.toggle('lit', el.dataset.char === ch));
 
-  // hero
-  document.getElementById('detail-char-big').textContent   = ch;
+  // hero — both scripts side by side
+  const tradChar = d.traditional || ch;
+  document.getElementById('detail-char-trad').textContent = tradChar;
+  document.getElementById('detail-char-simp').textContent = ch;
+  // Highlight whichever matches the global script
+  document.getElementById('csb-trad').classList.toggle('active-script', chineseScript === 'trad');
+  document.getElementById('csb-simp').classList.toggle('active-script', chineseScript === 'simp');
+
   const pinEl = document.getElementById('detail-pinyin-big');
   pinEl.textContent  = d.py;
   pinEl.className    = toneClass(d.tone);
   document.getElementById('detail-meaning').textContent    = d.meaning;
   document.getElementById('detail-meta').textContent       =
-    (d.traditional && d.traditional !== ch ? `Traditional: ${d.traditional}  ·  ` : '') +
     `${d.strokes} strokes  ·  Radical: ${d.radical} (${d.radicalMeaning})`;
 
   // breakdown
@@ -1357,10 +1422,15 @@ function toggleFlashcard() {
     document.getElementById('btn-add-fc').classList.remove('in-deck');
     showToast(`Removed ${currentChar} from flashcards`);
   } else {
-    flashcards.push({ char: currentChar, py: d.py, tone: d.tone, meaning: d.meaning });
+    flashcards.push({
+      char: currentChar,          // simplified (dictionary key)
+      trad: d.traditional || currentChar,  // traditional form
+      py: d.py, tone: d.tone, meaning: d.meaning
+    });
     document.getElementById('btn-add-fc').textContent = '✓ In Flashcards';
     document.getElementById('btn-add-fc').classList.add('in-deck');
-    showToast(`Added ${currentChar} to flashcards!`);
+    const displayChar = chineseScript === 'trad' ? (d.traditional || currentChar) : currentChar;
+    showToast(`Added ${displayChar} to flashcards!`);
   }
   saveFC();
 }
@@ -1394,7 +1464,9 @@ function renderFCView() {
 
   const card = fcSession[fcIndex];
   document.getElementById('fc-progress').textContent = `Card ${fcIndex + 1} of ${fcSession.length} — click to reveal`;
-  document.getElementById('fc-char-display').textContent = card.char;
+  // Show traditional or simplified based on global script
+  const fcDisplayChar = chineseScript === 'trad' ? (card.trad || card.char) : card.char;
+  document.getElementById('fc-char-display').textContent = fcDisplayChar;
 
   const pinEl = document.getElementById('fc-back-pinyin');
   pinEl.textContent = card.py;
@@ -1435,6 +1507,42 @@ function rateCard(correct) {
   } else {
     renderFCView();
   }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SCRIPT TOGGLE (Simplified ↔ Traditional)
+   ════════════════════════════════════════════════════════════ */
+
+function setScript(script) {
+  if (chineseScript === script) return;
+  chineseScript = script;
+
+  // Update toggle button UI
+  document.getElementById('opt-simp').classList.toggle('active', script === 'simp');
+  document.getElementById('opt-trad').classList.toggle('active', script === 'trad');
+
+  // Re-render prayer text with new script
+  renderPrayer();
+
+  // If detail panel is open, update the active-script highlight
+  if (currentChar) {
+    document.getElementById('csb-trad').classList.toggle('active-script', script === 'trad');
+    document.getElementById('csb-simp').classList.toggle('active-script', script === 'simp');
+    // Re-highlight the current char in the re-rendered prayer
+    document.querySelectorAll('.char-unit').forEach(el =>
+      el.classList.toggle('lit', el.dataset.char === currentChar));
+  }
+
+  // If flashcard view is visible, refresh the displayed character
+  if (document.getElementById('fc-study').style.display !== 'none') {
+    if (fcSession.length && fcIndex < fcSession.length) {
+      const card = fcSession[fcIndex];
+      const fcDisplayChar = script === 'trad' ? (card.trad || card.char) : card.char;
+      document.getElementById('fc-char-display').textContent = fcDisplayChar;
+    }
+  }
+
+  showToast(script === 'trad' ? '繁體 Traditional Chinese' : '簡體 Simplified Chinese');
 }
 
 /* ════════════════════════════════════════════════════════════
