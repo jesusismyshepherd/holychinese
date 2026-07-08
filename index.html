@@ -105,6 +105,24 @@
       margin: 0.75rem auto;
     }
 
+    /* ─── Prayer Picker ──────────────────────────────────── */
+    #prayer-picker {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 1.25rem;
+    }
+    .prayer-pill {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--primary);
+      padding: 0.4rem 1.1rem; border-radius: 20px;
+      display: flex; flex-direction: column; align-items: center;
+      line-height: 1.25; transition: all 0.16s;
+    }
+    .prayer-pill small { font-size: 0.68rem; color: var(--muted); }
+    .prayer-pill:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .prayer-pill.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .prayer-pill.active small { color: rgba(255,255,255,0.75); }
+
     /* ─── Tone Guide ─────────────────────────────────────── */
     #tone-guide {
       display: flex; gap: 0.6rem; flex-wrap: wrap;
@@ -504,10 +522,13 @@
   <!-- ── Prayer View ────────────────────────────────────── -->
   <section class="view active" id="prayer-view">
 
+    <!-- Prayer picker — built by JS -->
+    <div id="prayer-picker"></div>
+
     <div id="prayer-header">
-      <div class="zh-title">万福玛利亚</div>
-      <div class="py-title">Wàn Fú Mǎ Lì Yà</div>
-      <div class="en-title">Hail Mary</div>
+      <div class="zh-title"></div>
+      <div class="py-title"></div>
+      <div class="en-title"></div>
       <div class="divider"></div>
     </div>
 
@@ -646,7 +667,7 @@
    ════════════════════════════════════════════════════════════ */
 
 /* Each token: { zh (simplified), trad (traditional), py, tone }  tone: 1-4, 0 neutral, null for punct */
-const PRAYER_SEGMENTS = [
+const HAIL_MARY_SEGMENTS = [
   {
     tokens: [
       {zh:'万',trad:'萬',py:'wàn',tone:4},{zh:'福',trad:'福',py:'fú',tone:2},{zh:'玛',trad:'瑪',py:'mǎ',tone:3},
@@ -716,6 +737,73 @@ const PRAYER_SEGMENTS = [
       {zh:'阿',trad:'阿',py:'ā',  tone:1},{zh:'们',trad:'們',py:'men',tone:0},{zh:'。',py:null}
     ],
     translations: { en: 'Amen.' }
+  }
+];
+
+/* Prayer to the Guardian Angel (天主天神 — "Angele Dei")
+   天主天神，領守我者；惟上仁慈，托我於爾；今日賜我，照護引治。亞孟。 */
+const GUARDIAN_ANGEL_SEGMENTS = [
+  {
+    tokens: [
+      {zh:'天',trad:'天',py:'tiān',tone:1},{zh:'主',trad:'主',py:'zhǔ', tone:3},
+      {zh:'天',trad:'天',py:'tiān',tone:1},{zh:'神',trad:'神',py:'shén',tone:2},{zh:'，',py:null}
+    ],
+    translations: { en: 'Angel of God,' }
+  },
+  {
+    tokens: [
+      {zh:'领',trad:'領',py:'lǐng',tone:3},{zh:'守',trad:'守',py:'shǒu',tone:3},
+      {zh:'我',trad:'我',py:'wǒ',  tone:3},{zh:'者',trad:'者',py:'zhě', tone:3},{zh:'；',py:null}
+    ],
+    translations: { en: 'my guardian dear,' }
+  },
+  {
+    tokens: [
+      {zh:'惟',trad:'惟',py:'wéi',tone:2},{zh:'上',trad:'上',py:'shàng',tone:4},
+      {zh:'仁',trad:'仁',py:'rén',tone:2},{zh:'慈',trad:'慈',py:'cí',   tone:2},{zh:'，',py:null}
+    ],
+    translations: { en: 'to whom God\'s love,' }
+  },
+  {
+    tokens: [
+      {zh:'托',trad:'托',py:'tuō',tone:1},{zh:'我',trad:'我',py:'wǒ',tone:3},
+      {zh:'于',trad:'於',py:'yú', tone:2},{zh:'尔',trad:'爾',py:'ěr',tone:3},{zh:'；',py:null}
+    ],
+    translations: { en: 'commits me here;' }
+  },
+  {
+    tokens: [
+      {zh:'今',trad:'今',py:'jīn',tone:1},{zh:'日',trad:'日',py:'rì', tone:4},
+      {zh:'赐',trad:'賜',py:'cì', tone:4},{zh:'我',trad:'我',py:'wǒ',tone:3},{zh:'，',py:null}
+    ],
+    translations: { en: 'ever this day be at my side,' }
+  },
+  {
+    tokens: [
+      {zh:'照',trad:'照',py:'zhào',tone:4},{zh:'护',trad:'護',py:'hù', tone:4},
+      {zh:'引',trad:'引',py:'yǐn', tone:3},{zh:'治',trad:'治',py:'zhì',tone:4},{zh:'。',py:null}
+    ],
+    translations: { en: 'to light and guard, to rule and guide.' }
+  },
+  {
+    tokens: [
+      {zh:'亚',trad:'亞',py:'yà',tone:4},{zh:'孟',trad:'孟',py:'mèng',tone:4},{zh:'。',py:null}
+    ],
+    translations: { en: 'Amen.' }
+  }
+];
+
+/* Registry of all prayers — order = display order in the picker */
+const PRAYERS = [
+  {
+    id: 'hail-mary',
+    title: { zh:'万福玛利亚', trad:'萬福瑪利亞', py:'Wàn Fú Mǎ Lì Yà', en:'Hail Mary' },
+    segments: HAIL_MARY_SEGMENTS
+  },
+  {
+    id: 'guardian-angel',
+    title: { zh:'天主天神', trad:'天主天神', py:'Tiān Zhǔ Tiān Shén', en:'Prayer to the Guardian Angel' },
+    segments: GUARDIAN_ANGEL_SEGMENTS
   }
 ];
 
@@ -1191,6 +1279,234 @@ const CHARS = {
       {zh:'阿拉伯', py:'Ālābó',       en:'Arabic; Arab'},
       {zh:'阿弥陀佛',py:'Āmítuófó',  en:'Amitabha (Buddhist prayer)'}
     ]
+  },
+  '神': {
+    py:'shén', tone:2,
+    meaning:'spirit; god; deity; divine; angel',
+    traditional:'神', radical:'示', radicalMeaning:'spirit / altar', strokes:9,
+    components:[{zh:'礻',label:'altar / spirit'},{zh:'申',label:'to state / lightning'}],
+    etymology:'The altar radical (礻) with 申 (lightning) — the divine power revealed in the heavens and worshipped at the altar.',
+    phrases:[
+      {zh:'天神', py:'tiānshén', en:'angel; heavenly spirit'},
+      {zh:'神父', py:'shénfù',   en:'priest (Catholic Father)'},
+      {zh:'精神', py:'jīngshén', en:'spirit; mind; vitality'}
+    ]
+  },
+  '领': {
+    py:'lǐng', tone:3,
+    meaning:'to lead; to guide; to receive; collar; neck',
+    traditional:'領', radical:'页', radicalMeaning:'head / page', strokes:11,
+    components:[{zh:'令',label:'command'},{zh:'页',label:'head'}],
+    etymology:'A command (令) and a head (页) — the neck that turns, and by extension the one who leads and guides.',
+    phrases:[
+      {zh:'领导', py:'lǐngdǎo', en:'to lead; leader'},
+      {zh:'带领', py:'dàilǐng', en:'to lead; to guide'},
+      {zh:'领受', py:'lǐngshòu',en:'to receive; to accept (grace)'}
+    ]
+  },
+  '守': {
+    py:'shǒu', tone:3,
+    meaning:'to guard; to defend; to keep watch; to abide by',
+    traditional:'守', radical:'宀', radicalMeaning:'roof / house', strokes:6,
+    components:[{zh:'宀',label:'roof'},{zh:'寸',label:'hand / measure'}],
+    etymology:'A hand (寸) beneath a roof (宀) — keeping watch over and guarding the household.',
+    phrases:[
+      {zh:'守护', py:'shǒuhù', en:'to guard; to watch over; guardian'},
+      {zh:'看守', py:'kānshǒu',en:'to watch over; to keep guard'},
+      {zh:'遵守', py:'zūnshǒu',en:'to abide by; to observe (a rule)'}
+    ]
+  },
+  '者': {
+    py:'zhě', tone:3,
+    meaning:'one who; the one that; -er (nominalizing particle)',
+    traditional:'者', radical:'耂', radicalMeaning:'old', strokes:8,
+    components:[{zh:'耂',label:'old'},{zh:'日',label:'sun / speech'}],
+    etymology:'A classical particle that turns a verb into a noun — "the one who…", as in 領守我者, "the one who guards me".',
+    phrases:[
+      {zh:'记者', py:'jìzhě',  en:'reporter; journalist'},
+      {zh:'学者', py:'xuézhě', en:'scholar; learned person'},
+      {zh:'作者', py:'zuòzhě', en:'author; writer'}
+    ]
+  },
+  '惟': {
+    py:'wéi', tone:2,
+    meaning:'only; alone; but; to think; (literary particle)',
+    traditional:'惟', radical:'忄', radicalMeaning:'heart', strokes:11,
+    components:[{zh:'忄',label:'heart'},{zh:'隹',label:'short-tailed bird'}],
+    etymology:'The heart radical (忄) with 隹 as phonetic — to ponder in the heart; in literary use, "only" or "by virtue of".',
+    phrases:[
+      {zh:'惟一', py:'wéiyī',  en:'the only; sole'},
+      {zh:'惟有', py:'wéiyǒu', en:'only; only if'},
+      {zh:'思惟', py:'sīwéi',  en:'to contemplate; deep thought'}
+    ]
+  },
+  '上': {
+    py:'shàng', tone:4,
+    meaning:'above; up; upper; on high; to ascend; previous',
+    traditional:'上', radical:'一', radicalMeaning:'one', strokes:3,
+    components:[{zh:'一',label:'reference line'},{zh:'卜',label:'mark above'}],
+    etymology:'An abstract sign — a mark set above a base line, pointing to "above" and "on high".',
+    phrases:[
+      {zh:'上主',  py:'Shàngzhǔ', en:'the Lord (on high)'},
+      {zh:'天上',  py:'tiānshàng',en:'in heaven; in the sky'},
+      {zh:'上帝',  py:'Shàngdì',  en:'God; the Supreme Ruler'}
+    ]
+  },
+  '仁': {
+    py:'rén', tone:2,
+    meaning:'benevolence; humaneness; kindness; mercy',
+    traditional:'仁', radical:'人', radicalMeaning:'person', strokes:4,
+    components:[{zh:'亻',label:'person'},{zh:'二',label:'two'}],
+    etymology:'A person (亻) and two (二) — the virtue that lives between people: benevolence, the heart of Confucian ethics.',
+    phrases:[
+      {zh:'仁慈', py:'réncí',  en:'kind; merciful; benevolent'},
+      {zh:'仁爱', py:'rén\'ài',en:'benevolence; charity; loving-kindness'},
+      {zh:'仁义', py:'rényì',  en:'kindness and righteousness'}
+    ]
+  },
+  '慈': {
+    py:'cí', tone:2,
+    meaning:'loving; kind; compassionate; tender (esp. maternal) love',
+    traditional:'慈', radical:'心', radicalMeaning:'heart', strokes:13,
+    components:[{zh:'兹',label:'this / now (phonetic)'},{zh:'心',label:'heart'}],
+    etymology:'A heart (心) beneath 兹 — the tender, overflowing heart of a loving mother; compassion.',
+    phrases:[
+      {zh:'仁慈', py:'réncí',  en:'merciful; kind'},
+      {zh:'慈悲', py:'cíbēi',  en:'mercy; compassion'},
+      {zh:'慈母', py:'címǔ',   en:'loving mother'}
+    ]
+  },
+  '托': {
+    py:'tuō', tone:1,
+    meaning:'to entrust; to support; to hold up in the palm; to rely on',
+    traditional:'托', radical:'扌', radicalMeaning:'hand', strokes:6,
+    components:[{zh:'扌',label:'hand'},{zh:'乇',label:'phonetic'}],
+    etymology:'The hand radical (扌) — to hold something up in the open palm, and so to entrust it to another\'s care.',
+    phrases:[
+      {zh:'托付', py:'tuōfù',  en:'to entrust; to commit to'},
+      {zh:'依托', py:'yītuō',  en:'to rely on; to depend upon'},
+      {zh:'委托', py:'wěituō', en:'to entrust; to commission'}
+    ]
+  },
+  '于': {
+    py:'yú', tone:2,
+    meaning:'in; at; to; from; than (classical preposition)',
+    traditional:'於', radical:'二', radicalMeaning:'two', strokes:3,
+    components:[{zh:'一',label:'line'},{zh:'亅',label:'hook'}],
+    etymology:'A classical preposition marking place, time, or relation — "at, in, to". The literary form 於 fills this role in prayer texts.',
+    phrases:[
+      {zh:'于是', py:'yúshì',  en:'thereupon; and so'},
+      {zh:'关于', py:'guānyú', en:'about; concerning'},
+      {zh:'属于', py:'shǔyú',  en:'to belong to'}
+    ]
+  },
+  '尔': {
+    py:'ěr', tone:3,
+    meaning:'you; thou (literary); thus; so',
+    traditional:'爾', radical:'小', radicalMeaning:'small', strokes:5,
+    components:[{zh:'小',label:'small'},{zh:'尔',label:'you (self)'}],
+    etymology:'A classical word for "you" (thou), common in literary and religious language; simplified from 爾.',
+    phrases:[
+      {zh:'尔等',    py:'ěrděng',      en:'you (plural, literary)'},
+      {zh:'尔后',    py:'ěrhòu',       en:'thereafter; from then on'},
+      {zh:'出尔反尔',py:'chūěrfǎn\'ěr',en:'to go back on one\'s word'}
+    ]
+  },
+  '今': {
+    py:'jīn', tone:1,
+    meaning:'now; today; the present; modern',
+    traditional:'今', radical:'人', radicalMeaning:'person / gather', strokes:4,
+    components:[{zh:'人',label:'roof / gather'},{zh:'一',label:'marker'}],
+    etymology:'A cover gathering over a marker — the present moment, drawn together as "now".',
+    phrases:[
+      {zh:'今日', py:'jīnrì',  en:'today; this day'},
+      {zh:'今天', py:'jīntiān',en:'today'},
+      {zh:'今生', py:'jīnshēng',en:'this life; the present life'}
+    ]
+  },
+  '日': {
+    py:'rì', tone:4,
+    meaning:'sun; day; date',
+    traditional:'日', radical:'日', radicalMeaning:'sun', strokes:4,
+    components:[{zh:'日',label:'sun (self)'}],
+    etymology:'A pictograph of the sun — a circle with a central mark — meaning the sun and, by extension, a day.',
+    phrases:[
+      {zh:'今日', py:'jīnrì',  en:'today; this day'},
+      {zh:'日子', py:'rìzi',   en:'day; date; life'},
+      {zh:'生日', py:'shēngrì',en:'birthday'}
+    ]
+  },
+  '赐': {
+    py:'cì', tone:4,
+    meaning:'to grant; to bestow (from a superior); to confer',
+    traditional:'賜', radical:'贝', radicalMeaning:'shell / treasure', strokes:12,
+    components:[{zh:'贝',label:'treasure / shell'},{zh:'易',label:'to change (phonetic)'}],
+    etymology:'Treasure (贝) given from above — a superior or the divine bestowing a gift or favor.',
+    phrases:[
+      {zh:'赐福', py:'cìfú',   en:'to bless; to grant blessing'},
+      {zh:'恩赐', py:'ēncì',   en:'to grant as a favor; a gift'},
+      {zh:'赏赐', py:'shǎngcì',en:'to bestow; to reward'}
+    ]
+  },
+  '照': {
+    py:'zhào', tone:4,
+    meaning:'to shine; to illuminate; to reflect; to look after',
+    traditional:'照', radical:'灬', radicalMeaning:'fire', strokes:13,
+    components:[{zh:'昭',label:'bright'},{zh:'灬',label:'fire'}],
+    etymology:'Brightness (昭) over fire (灬) — light shining forth to illuminate and to watch over.',
+    phrases:[
+      {zh:'照顾', py:'zhàogù',   en:'to look after; to care for'},
+      {zh:'照亮', py:'zhàoliàng',en:'to light up; to illuminate'},
+      {zh:'光照', py:'guāngzhào',en:'to illuminate; illumination'}
+    ]
+  },
+  '护': {
+    py:'hù', tone:4,
+    meaning:'to protect; to guard; to shield; to defend',
+    traditional:'護', radical:'扌', radicalMeaning:'hand', strokes:7,
+    components:[{zh:'扌',label:'hand'},{zh:'户',label:'door / household'}],
+    etymology:'A hand (扌) shielding a household (户) — to protect and guard. Simplified from 護.',
+    phrases:[
+      {zh:'保护', py:'bǎohù',  en:'to protect; protection'},
+      {zh:'守护', py:'shǒuhù', en:'to guard; to watch over'},
+      {zh:'护理', py:'hùlǐ',   en:'to nurse; to care for'}
+    ]
+  },
+  '引': {
+    py:'yǐn', tone:3,
+    meaning:'to lead; to guide; to draw; to pull; to attract',
+    traditional:'引', radical:'弓', radicalMeaning:'bow', strokes:4,
+    components:[{zh:'弓',label:'bow'},{zh:'丨',label:'drawn string'}],
+    etymology:'A bow (弓) with a drawn string (丨) — to draw out, and so to lead and guide.',
+    phrases:[
+      {zh:'引导', py:'yǐndǎo', en:'to guide; to lead'},
+      {zh:'指引', py:'zhǐyǐn', en:'to point the way; to guide'},
+      {zh:'吸引', py:'xīyǐn',  en:'to attract; to draw in'}
+    ]
+  },
+  '治': {
+    py:'zhì', tone:4,
+    meaning:'to govern; to rule; to manage; to cure; order',
+    traditional:'治', radical:'氵', radicalMeaning:'water', strokes:8,
+    components:[{zh:'氵',label:'water'},{zh:'台',label:'platform (phonetic)'}],
+    etymology:'Managing water (氵) — controlling the rivers, and by extension governing, ruling, and healing.',
+    phrases:[
+      {zh:'治理', py:'zhìlǐ',   en:'to govern; to administer'},
+      {zh:'统治', py:'tǒngzhì', en:'to rule; to reign'},
+      {zh:'治疗', py:'zhìliáo', en:'to treat; to cure'}
+    ]
+  },
+  '孟': {
+    py:'mèng', tone:4,
+    meaning:'first (in a series); eldest; used in transliteration',
+    traditional:'孟', radical:'子', radicalMeaning:'child', strokes:8,
+    components:[{zh:'子',label:'child'},{zh:'皿',label:'vessel'}],
+    etymology:'A child (子) over a vessel (皿) — the firstborn. Also used phonetically in 亚孟, an older written form of "Amen".',
+    phrases:[
+      {zh:'亚孟', py:'yàmèng', en:'Amen (older Catholic form)'},
+      {zh:'孟子', py:'Mèngzǐ', en:'Mencius (philosopher)'},
+      {zh:'孟春', py:'mèngchūn',en:'first month of spring'}
+    ]
   }
 };
 
@@ -1199,6 +1515,7 @@ const CHARS = {
    ════════════════════════════════════════════════════════════ */
 
 let currentLang    = 'en';
+let currentPrayerId = PRAYERS[0].id;
 let chineseScript  = 'simp';   // 'simp' | 'trad'
 let playSpeed      = 0.75;
 let isPlaying      = false;
@@ -1250,8 +1567,12 @@ function speakChar(ch) {
   speechSynthesis.speak(u);
 }
 
+function currentPrayer() {
+  return PRAYERS.find(p => p.id === currentPrayerId) || PRAYERS[0];
+}
+
 function getFullText() {
-  return PRAYER_SEGMENTS.map(s =>
+  return currentPrayer().segments.map(s =>
     s.tokens.map(t => t.py ? (chineseScript === 'trad' ? t.trad : t.zh) : t.zh).join('')
   ).join('');
 }
@@ -1307,9 +1628,42 @@ function toneClass(t) {
   return t === null ? '' : `t${t}`;
 }
 
+function renderPicker() {
+  const el = document.getElementById('prayer-picker');
+  if (!el) return;
+  el.innerHTML = PRAYERS.map(p => {
+    const zh = chineseScript === 'trad' ? p.title.trad : p.title.zh;
+    return `<button class="prayer-pill${p.id === currentPrayerId ? ' active' : ''}" ` +
+           `onclick="selectPrayer('${p.id}')">` +
+           `<span>${zh}</span><small>${p.title.en}</small></button>`;
+  }).join('');
+}
+
+function renderPrayerHeader() {
+  const t = currentPrayer().title;
+  document.querySelector('#prayer-header .zh-title').textContent = chineseScript === 'trad' ? t.trad : t.zh;
+  document.querySelector('#prayer-header .py-title').textContent = t.py;
+  document.querySelector('#prayer-header .en-title').textContent = t.en;
+}
+
+function selectPrayer(id) {
+  if (id === currentPrayerId) return;
+  currentPrayerId = id;
+  closePanel();
+  // Stop any playback tied to the previous prayer
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+  isPlaying = false;
+  const btn = document.getElementById('btn-play-pause');
+  btn.classList.remove('playing');
+  btn.textContent = '▶';
+  renderPicker();
+  renderPrayerHeader();
+  renderPrayer();
+}
+
 function renderPrayer() {
   const container = document.getElementById('prayer-text');
-  container.innerHTML = PRAYER_SEGMENTS.map((seg, si) => {
+  container.innerHTML = currentPrayer().segments.map((seg, si) => {
     const tokens = seg.tokens.map(tok => {
       if (!tok.py) {
         return `<span class="char-unit punct"><span class="py"></span><span class="hz">${tok.zh}</span></span>`;
@@ -1515,7 +1869,9 @@ function setScript(script) {
   document.getElementById('opt-simp').classList.toggle('active', script === 'simp');
   document.getElementById('opt-trad').classList.toggle('active', script === 'trad');
 
-  // Re-render prayer text with new script
+  // Re-render picker, header and prayer text with new script
+  renderPicker();
+  renderPrayerHeader();
   renderPrayer();
 
   // If detail panel is open, update the active-script highlight
@@ -1569,6 +1925,8 @@ function showToast(msg) {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadFC();
+  renderPicker();
+  renderPrayerHeader();
   renderPrayer();
 
   // Voices load asynchronously in some browsers
